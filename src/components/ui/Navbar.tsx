@@ -51,21 +51,44 @@ export function Navbar() {
           {/* LOGO */}
           <Link href="/" className="flex items-center gap-3 group" aria-label="rzstudio.dev">
             <div className="relative py-2 flex items-center justify-center">
-              <svg viewBox="0 0 600 200" className="w-48 h-auto drop-shadow-[0_0_10px_rgba(201,115,82,0.3)]">
+              <svg viewBox="0 0 600 200" className="w-48 h-auto drop-shadow-[0_0_14px_rgba(56,189,248,0.35)]">
                 <defs>
-                  <linearGradient id="glowLoop" x1="0%" y1="0%" x2="200%" y2="0%">
-                    <stop offset="0%" stopColor="transparent" />
-                    <stop offset="30%" stopColor="#8A5B3E" />
-                    <stop offset="45%" stopColor="#C97352" />
-                    <stop offset="80%" stopColor="transparent" />
-                    <animate attributeName="x1" from="-100%" to="200%" dur="6s" repeatCount="indefinite" />
-                    <animate attributeName="x2" from="0%" to="300%" dur="6s" repeatCount="indefinite" />
+                  {/* Blue breeze — sweeps across the full "RZStudio.dev" in userSpace coords */}
+                  <linearGradient id="blueSweep" gradientUnits="userSpaceOnUse" x1="-300" y1="0" x2="-100" y2="0">
+                    <stop offset="0%"   stopColor="transparent" />
+                    <stop offset="30%"  stopColor="#38bdf8" stopOpacity="0.55" />
+                    <stop offset="50%"  stopColor="#e0f2fe" stopOpacity="1" />
+                    <stop offset="70%"  stopColor="#38bdf8" stopOpacity="0.55" />
+                    <stop offset="100%" stopColor="transparent" />
+                    <animate attributeName="x1" from="-300" to="700" dur="5s" repeatCount="indefinite" />
+                    <animate attributeName="x2" from="-100" to="900" dur="5s" repeatCount="indefinite" />
                   </linearGradient>
+
+                  {/* Neon glow applied to the sweep layer */}
+                  <filter id="blueGlow" x="-5%" y="-40%" width="110%" height="180%">
+                    <feGaussianBlur stdDeviation="2.5" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
                 </defs>
-                <text x="20" y="130" fontFamily="'Inter', sans-serif" fontWeight="200" fontSize="84" fill="none" stroke="#3A271E" strokeWidth="1">RZStudio</text>
-                <text x="20" y="130" fontFamily="'Inter', sans-serif" fontWeight="200" fontSize="84" fill="none" stroke="url(#glowLoop)" strokeWidth="1.5">RZStudio</text>
-                <text x="485" y="130" fontFamily="'JetBrains Mono', monospace" fontWeight="100" fontSize="32" fill="none" stroke="#3A271E" strokeWidth="0.5">.dev</text>
-                <text x="485" y="130" fontFamily="'JetBrains Mono', monospace" fontWeight="100" fontSize="32" fill="none" stroke="url(#glowLoop)" strokeWidth="0.75">.dev</text>
+
+                {/* White star base — single stroke, no double outline */}
+                <text x="20" y="130" fontFamily="'Inter', sans-serif" fontWeight="200" fontSize="84"
+                  fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="1.5">RZStudio</text>
+
+                {/* Blue sweep overlay — same strokeWidth to avoid doubling */}
+                <text x="20" y="130" fontFamily="'Inter', sans-serif" fontWeight="200" fontSize="84"
+                  fill="none" stroke="url(#blueSweep)" strokeWidth="1.5" filter="url(#blueGlow)">RZStudio</text>
+
+                {/* .dev — white base */}
+                <text x="487" y="130" fontFamily="'JetBrains Mono', monospace" fontWeight="100" fontSize="32"
+                  fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="1">.dev</text>
+
+                {/* .dev — blue sweep */}
+                <text x="487" y="130" fontFamily="'JetBrains Mono', monospace" fontWeight="100" fontSize="32"
+                  fill="none" stroke="url(#blueSweep)" strokeWidth="1" filter="url(#blueGlow)">.dev</text>
               </svg>
             </div>
           </Link>
