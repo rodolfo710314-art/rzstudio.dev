@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+@theme {
+  /* Mapeo del Flujo Térmico a las clases estándar del proyecto */
+  --color-primary-500: #C97352; /* Liquid Copper */
+  --color-primary-600: #C97352; /* Liquid Copper */
+  --color-primary-700: #A46747; /* Amber Coffee */
+  --color-primary-900: #8A5B3E; /* Rich Roast Coffee */
+
+  --color-secondary-500: #8A5B3E; /* Rich Roast Coffee */
+  --color-secondary-600: #A46747; /* Amber Coffee */
+
+  --color-accent-500: #C97352; /* Liquid Copper */
+  --color-accent-600: #A46747;
+
+  /* Neutros Estrictos */
+  --color-slate-950: #050505; /* Negro Absoluto */
+  --color-slate-900: #0c0806; /* Negro Café muy profundo */
+  --color-slate-800: #1D140F; /* Borde Terminal 1px */
+  --color-slate-400: #94a3b8; /* Descripciones */
+
+  /* Colores con nombre semántico */
+  --color-copper: #C97352;
+  --color-roast: #8A5B3E;
+  --color-amber: #A46747;
+  --color-terminal-bg: #050505;
+  --color-terminal-border: #1D140F;
+
+  /* Geometría del Sistema: Forzar todos los radios de Tailwind a cero de manera limpia */
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-full: 0px;
+}
+
+:root {
+  --background: #050505;
+  --foreground: #ffffff;
+}
+
+body {
+  background-color: #050505;
+  color: #ffffff;
+  font-family: var(--font-inter), sans-serif;
+  overflow-x: hidden;
+}
+
+/* --- TIPOGRAFÍA Y ESTILOS --- */
+.font-technical {
+  font-family: var(--font-jetbrains-mono), monospace;
+  text-transform: lowercase;
+}
+
+/* --- CONTROLES DE TERMINAL & LUCES LED --- */
+.led-glow-copper {
+  box-shadow: 0 0 10px rgba(201, 115, 82, 0.4);
+}
+
+.led-glow-copper-hover:hover {
+  box-shadow: 0 0 18px rgba(201, 115, 82, 0.8);
+}
+
+.glow-title-strong {
+  color: #C97352;
+  text-shadow: 0 0 25px rgba(201, 115, 82, 0.75), 0 0 10px rgba(201, 115, 82, 0.45);
+  filter: drop-shadow(0 0 15px rgba(201, 115, 82, 0.4));
+}
+
+.glow-title-ambient {
+  text-shadow: 0 0 15px rgba(201, 115, 82, 0.3);
+}
+
+/* --- Inteligencia Polimórfica: Clases de Adaptación de Hardware --- */
+
+/* Essential: Máximo rendimiento, mínima carga visual */
+.tier-essential * {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+/* Balanced */
+.tier-balanced .glass {
+  background: rgba(5, 5, 5, 0.85);
+  border: 1px solid #1D140F;
+}
+
+/* High/Ultra: Efectos avanzados, glassmorphism real */
+.tier-high .glass,
+.tier-ultra .glass {
+  background: rgba(5, 5, 5, 0.75);
+  backdrop-filter: blur(16px);
+  border: 1px solid #1D140F;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.8);
+}
+
+/* Reducción de movimiento por hardware o preferencia */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Animaciones Térmicas */
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.thermal-ambient-pulse {
+  animation: pulseGlow 6s ease-in-out infinite;
+}
+
+/* Simbiosis: encendido de consola al activar el Núcleo Simbiótico */
+@keyframes consolePowerOn {
+  0%   { opacity: 0;    background: rgba(220, 220, 255, 0.0); }
+  25%  { opacity: 0.85; background: rgba(220, 220, 255, 0.85); }
+  60%  { opacity: 0.45; background: rgba(220, 220, 255, 0.45); }
+  100% { opacity: 0;    background: rgba(220, 220, 255, 0.0); }
+}
+
+.animate-console-power-on {
+  animation: consolePowerOn 0.2s ease-out forwards;
+}
+
