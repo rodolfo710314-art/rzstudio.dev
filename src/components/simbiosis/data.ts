@@ -21,7 +21,7 @@ export const PROJECTS: Project[] = [
     name: 'agente autónomo de auditoría',
     description: 'motor de análisis de código que detecta y corrige deuda técnica en tiempo real usando razonamiento multi-paso.',
     status: 'live',
-    statusLabel: 'IA Investigando patrones de deuda técnica...',
+    statusLabel: 'Investigando patrones de deuda técnica...',
     latency: '84ms',
     tokens: '2.4k',
     agent: 'rz-auditor-v3',

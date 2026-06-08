@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Project } from './data';
@@ -13,17 +13,42 @@ interface AndroidModalProps {
 export function AndroidModal({ project, onClose }: AndroidModalProps) {
   const [form, setForm] = useState({ name: '', email: '', company: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSubmitted(true);
-  }
+  // Escape key handler
+  useEffect(() => {
+    if (!project) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleClose();
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!project]);
 
-  // Reset form when modal closes
+  // Focus close button on open
+  useEffect(() => {
+    if (project) setTimeout(() => closeButtonRef.current?.focus(), 50);
+  }, [project?.name]);
+
   function handleClose() {
     setForm({ name: '', email: '', company: '' });
     setSubmitted(false);
-    onClose();
+    setSubmitting(false);
+    onCloseRef.current();
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    // Simulate async submission
+    setTimeout(() => {
+      setSubmitting(false);
+      setSubmitted(true);
+    }, 900);
   }
 
   return (
@@ -37,10 +62,14 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
             exit={{ opacity: 0 }}
             onClick={handleClose}
             className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200]"
+            aria-hidden="true"
           />
 
           <motion.div
             key="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`solicitar acceso beta: ${project.name}`}
             initial={{ opacity: 0, scale: 0.97, y: 6 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: 6 }}
@@ -50,7 +79,7 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
             {/* Header */}
             <div className="flex items-start justify-between mb-6">
               <div>
-                <span className="font-mono text-[8px] text-copper uppercase tracking-widest block mb-0.5">
+                <span className="font-mono text-[8px] text-copper uppercase tracking-widest block mb-0.5" aria-hidden="true">
                   // obtener binario seguro
                 </span>
                 <h3 className="font-mono text-sm text-white lowercase leading-tight">
@@ -58,6 +87,7 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
                 </h3>
               </div>
               <button
+                ref={closeButtonRef}
                 onClick={handleClose}
                 className="text-slate-700 hover:text-slate-300 transition-colors mt-0.5"
                 aria-label="cerrar"
@@ -89,21 +119,22 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
                 ))}
 
                 <div className="font-mono text-[8px] text-slate-700 border border-slate-800/50 p-2.5 bg-black/30 leading-relaxed">
-                  <span className="text-amber-600/50">// aviso de seguridad —</span>{' '}
+                  <span className="text-amber-600/50" aria-hidden="true">// aviso de seguridad —</span>{' '}
                   binario firmado con clave rz-studio-2026. verifica la firma antes de instalar.
                   compatible con android 11+.
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-copper text-black font-mono text-[9px] uppercase tracking-widest py-2.5 hover:bg-amber-600 transition-colors"
+                  disabled={submitting}
+                  className="w-full bg-copper text-black font-mono text-[9px] uppercase tracking-widest py-2.5 hover:bg-amber-600 transition-colors disabled:opacity-60"
                 >
-                  solicitar acceso beta
+                  {submitting ? '> procesando solicitud...' : 'solicitar acceso beta'}
                 </button>
               </form>
             ) : (
               <div className="text-center py-10">
-                <div className="w-1.5 h-1.5 bg-emerald-500 mx-auto mb-4" />
+                <div className="w-1.5 h-1.5 bg-emerald-500 mx-auto mb-4" aria-hidden="true" />
                 <p className="font-mono text-xs text-emerald-400 lowercase">
                   solicitud registrada.
                 </p>

@@ -14,6 +14,7 @@ function isWebGLAvailable(): boolean {
     return false;
   }
 }
+
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Points, PointMaterial, Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -22,10 +23,11 @@ import { useHardware } from '@/context/HardwareContext';
 function SceneContents() {
   const { config } = useHardware();
   const pointsRef = useRef<THREE.Points>(null);
-  const [pos, setPos] = useState<[number, number, number]>([0, 0, -5]);
-  const [flashOpacity, setFlashOpacity] = useState(0);
+  // Use refs instead of React state to avoid 60 re-renders/sec inside useFrame
+  const textRef = useRef<any>(null);
+  const materialRef = useRef<THREE.MeshBasicMaterial | null>(null);
+  const posRef = useRef<[number, number, number]>([0, 0, -5]);
 
-  // Partículas de polvo ambiental basadas en el Tier de Hardware
   const particlesArray = useMemo(() => {
     const count = config.particleCount || 1000;
     const positions = new Float32Array(count * 3);
@@ -33,7 +35,7 @@ function SceneContents() {
       const r = 3.5;
       const theta = Math.random() * 2 * Math.PI;
       const phi = Math.acos(2 * Math.random() - 1);
-      positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
       positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
       positions[i * 3 + 2] = r * Math.cos(phi);
     }
@@ -43,55 +45,63 @@ function SceneContents() {
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
 
-    // Rotación muy lenta del polvo espacial
     if (pointsRef.current) {
       pointsRef.current.rotation.x -= 0.001;
       pointsRef.current.rotation.y -= 0.0015;
     }
 
-    // Ciclo continuo de 6 segundos
+    // Update material opacity directly — no React state, no re-renders
     const pulse = Math.sin((t * Math.PI * 2) / 6);
     const opacity = pulse > 0 ? pulse * 0.45 : 0;
-    
-    setFlashOpacity(opacity);
 
-    // Reposicionamiento sutil en el vacío profundo al apagarse
-    if (opacity < 0.01 && Math.random() < 0.08) {
-      setPos([
+    if (materialRef.current) {
+      materialRef.current.opacity = opacity;
+    }
+
+    // Reposition text node directly via ref when opacity fades out
+    if (opacity < 0.01 && Math.random() < 0.08 && textRef.current) {
+      posRef.current = [
         (Math.random() - 0.5) * 4.5,
         (Math.random() - 0.5) * 2.2,
-        -5
-      ]);
+        -5,
+      ];
+      textRef.current.position.set(...posRef.current);
     }
   });
 
-  const [randomX, randomY] = [pos[0], pos[1]];
-
   return (
     <>
-      {/* Partículas de polvo ambiental */}
       <Points ref={pointsRef} positions={particlesArray} stride={3}>
-        <PointMaterial transparent color="#8A5B3E" size={0.02} opacity={0.4} depthWrite={false} />
+        <PointMaterial
+          transparent
+          color="#8A5B3E"
+          size={0.02}
+          opacity={0.4}
+          depthWrite={false}
+        />
       </Points>
-      
-      {/* Destello Aditivo RZStudio */}
-      <Text 
-        position={[randomX, randomY, -5]} 
-        strokeWidth="2%" 
-        strokeColor="#C97352" 
+
+      <Text
+        ref={textRef}
+        position={posRef.current}
+        strokeWidth="2%"
+        strokeColor="#C97352"
         fillOpacity={0}
         font="https://fonts.gstatic.com/s/jetbrainsmono/v13/tDbY2o-flEEny0FZhsfKu5WU4xyt.woff"
       >
         RZStudio
-        <meshBasicMaterial transparent blending={THREE.AdditiveBlending} opacity={flashOpacity} depthWrite={false} />
+        <meshBasicMaterial
+          ref={materialRef}
+          transparent
+          blending={THREE.AdditiveBlending}
+          opacity={0}
+          depthWrite={false}
+        />
       </Text>
     </>
   );
 }
 
-/**
- * NeuralNetwork: Componente de terminal de control 3D en plano profundo
- */
 export function NeuralNetwork() {
   const [webglSupported, setWebglSupported] = useState<boolean | null>(null);
 

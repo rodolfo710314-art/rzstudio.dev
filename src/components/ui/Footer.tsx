@@ -14,7 +14,7 @@ export function Footer() {
         {/* DIAGNÓSTICOS DEL SISTEMA */}
         <div className="space-y-3 md:col-span-2">
           <div className="flex items-center gap-2 text-copper font-bold uppercase tracking-wider mb-2">
-            <span className="w-1.5 h-1.5 bg-copper animate-ping rounded-none" />
+            <span className="w-1.5 h-1.5 bg-copper animate-pulse rounded-none" />
             rz_core_diagnostics
           </div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[10px] text-slate-500">
@@ -32,54 +32,29 @@ export function Footer() {
 
         {/* NAVEGACIÓN */}
         <div>
-          <div className="text-slate-400 font-bold mb-3 uppercase tracking-wider">[enlaces]</div>
+          <div className="text-slate-400 font-bold mb-3 uppercase tracking-wider">[páginas]</div>
           <ul className="space-y-2">
-            <li>
-              <Link href="/" className="hover:text-copper transition-colors">
-                // inicio
-              </Link>
-            </li>
-            <li>
-              <Link href="/servicios" className="hover:text-copper transition-colors">
-                // servicios
-              </Link>
-            </li>
-            <li>
-              <Link href="/portfolio" className="hover:text-copper transition-colors">
-                // portfolio
-              </Link>
-            </li>
-            <li>
-              <Link href="/la-estrella" className="hover:text-copper transition-colors">
-                // la estrella
-              </Link>
-            </li>
+            <li><Link href="/" className="hover:text-copper transition-colors">// inicio</Link></li>
+            <li><Link href="/la-estrella" className="hover:text-copper transition-colors">// la estrella</Link></li>
+            <li><Link href="/servicios" className="hover:text-copper transition-colors">// servicios</Link></li>
+            <li><Link href="/portfolio" className="hover:text-copper transition-colors">// portfolio</Link></li>
+            <li><Link href="/proceso" className="hover:text-copper transition-colors">// proceso</Link></li>
+            <li><Link href="/simbiosis" className="hover:text-copper transition-colors">// simbiosis</Link></li>
+            <li><Link href="/ia" className="hover:text-copper transition-colors">// ia</Link></li>
+            <li><Link href="/blog" className="hover:text-copper transition-colors">// blog</Link></li>
           </ul>
         </div>
 
         {/* OTROS */}
         <div>
-          <div className="text-slate-400 font-bold mb-3 uppercase tracking-wider">[legal]</div>
+          <div className="text-slate-400 font-bold mb-3 uppercase tracking-wider">[contacto]</div>
           <ul className="space-y-2">
+            <li><Link href="/contacto" className="hover:text-copper transition-colors">// contacto</Link></li>
             <li>
-              <Link href="/contacto" className="hover:text-copper transition-colors">
-                // contacto
-              </Link>
+              <span className="text-slate-600">© {new Date().getFullYear()} rzstudio //</span>
             </li>
             <li>
-              <Link href="/ia" className="hover:text-copper transition-colors">
-                // motor ia
-              </Link>
-            </li>
-            <li>
-              <span className="text-slate-600">
-                © {new Date().getFullYear()} rzstudio //
-              </span>
-            </li>
-            <li>
-              <span className="text-slate-600">
-                [hecho con simbiosis humana-ia]
-              </span>
+              <span className="text-slate-600">[hecho con simbiosis humana-ia]</span>
             </li>
           </ul>
         </div>

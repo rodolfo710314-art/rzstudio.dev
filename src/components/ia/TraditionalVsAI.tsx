@@ -86,17 +86,21 @@ export function TraditionalVsAI() {
       </div>
 
       {/* SELECTORES TERMINALES */}
-      <div className="grid grid-cols-3 gap-2 mb-8">
+      <div role="tablist" aria-label="metodología de desarrollo" className="grid grid-cols-3 gap-2 mb-8">
         {(['tradicional', 'ia-asistido', 'rz-agente'] as Methodology[]).map((method) => {
           const isActive = selected === method;
           return (
             <button
               key={method}
+              role="tab"
+              aria-selected={isActive}
+              aria-controls={`panel-${method}`}
+              id={`tab-${method}`}
               onClick={() => setSelected(method)}
               className={`
                 py-3 text-[11px] tracking-widest border transition-all duration-300 font-mono relative
-                ${isActive 
-                  ? 'bg-transparent text-white border-copper shadow-[0_0_10px_rgba(201,115,82,0.25)]' 
+                ${isActive
+                  ? 'bg-transparent text-white border-copper shadow-[0_0_10px_rgba(201,115,82,0.25)]'
                   : 'bg-transparent text-slate-500 border-slate-800 hover:text-slate-300 hover:border-slate-700'}
               `}
             >
@@ -110,7 +114,12 @@ export function TraditionalVsAI() {
       </div>
 
       {/* COMPARATIVO DE MÉTRICAS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+      <div
+        role="tabpanel"
+        id={`panel-${selected}`}
+        aria-labelledby={`tab-${selected}`}
+        className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6"
+      >
         
         {/* PANEL IZQUIERDO: METRICAS CLAVE */}
         <div className="space-y-4">
@@ -164,7 +173,7 @@ export function TraditionalVsAI() {
                 className="space-y-1.5"
               >
                 {activeMetrics.logs.map((log, i) => (
-                  <div key={i} className="text-slate-400 text-[10px] font-mono leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                  <div key={i} className="text-slate-400 text-[10px] font-mono leading-tight break-words">
                     {log}
                   </div>
                 ))}

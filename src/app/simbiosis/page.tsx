@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 function Skeleton() {
   return (
     <div className="min-h-[50vh] flex items-center justify-center">
-      <span className="font-mono text-[10px] text-slate-800 uppercase tracking-widest animate-pulse">
+      <span className="font-mono text-[10px] text-slate-500 uppercase tracking-widest animate-pulse">
         {'> iniciando núcleo simbiótico...'}
       </span>
     </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Brain, Cpu, GitBranch, Zap } from 'lucide-react';
 
@@ -37,12 +38,72 @@ const CAPABILITIES = [
   },
 ] as const;
 
+interface ParsedStat {
+  num: number;
+  suffix: string;
+  spanishThousands: boolean;
+}
+
+function parseStatValue(value: string): ParsedStat | null {
+  if (value.startsWith('<')) return null;
+  // Matches: optional digits, optional dot+3digits, optional %
+  const match = value.match(/^(\d+(?:\.\d{3})?)(%?)$/);
+  if (!match) return null;
+  const rawStr = match[1].replace(/\./g, ''); // strip thousands separator
+  return {
+    num: parseInt(rawStr, 10),
+    suffix: match[2],
+    spanishThousands: match[1].includes('.'),
+  };
+}
+
+function AnimatedStat({ value, delay }: { value: string; delay: number }) {
+  const parsed = parseStatValue(value);
+  const [display, setDisplay] = useState(parsed ? `0${parsed.suffix}` : value);
+  const rafRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!parsed) {
+      const t = setTimeout(() => setDisplay(value), delay);
+      return () => clearTimeout(t);
+    }
+
+    const { num, suffix, spanishThousands } = parsed;
+    const duration = 1200;
+    let startTime = 0;
+
+    const animate = (ts: number) => {
+      if (!startTime) startTime = ts;
+      const progress = Math.min((ts - startTime) / duration, 1);
+      const eased = 1 - (1 - progress) ** 3; // easeOutCubic
+      const current = Math.round(num * eased);
+      const formatted =
+        spanishThousands && current >= 1000
+          ? current.toLocaleString('es-ES') // produces '4.291' for 4291
+          : String(current);
+      setDisplay(`${formatted}${suffix}`);
+      if (progress < 1) rafRef.current = requestAnimationFrame(animate);
+    };
+
+    const t = setTimeout(() => {
+      rafRef.current = requestAnimationFrame(animate);
+    }, delay);
+
+    return () => {
+      clearTimeout(t);
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, []); // intentional: run once on mount
+
+  return <>{display}</>;
+}
+
 export function InteligenciaView({ onActivate }: InteligenciaViewProps) {
   return (
     <div className="space-y-14">
       {/* Intro */}
       <div className="max-w-2xl">
-        <span className="font-mono text-[10px] text-copper uppercase tracking-widest block mb-3">
+        <span className="font-mono text-[10px] text-copper uppercase tracking-widest block mb-3" aria-hidden="true">
           // descripción del sistema
         </span>
         <p className="font-mono text-sm text-slate-400 leading-relaxed lowercase">
@@ -66,9 +127,11 @@ export function InteligenciaView({ onActivate }: InteligenciaViewProps) {
             transition={{ delay: i * 0.08, duration: 0.4 }}
             className="p-5 bg-[#030303]"
           >
-            <div className="font-mono text-2xl font-bold text-white tabular-nums">{value}</div>
+            <div className="font-mono text-2xl font-bold text-white tabular-nums">
+              <AnimatedStat value={value} delay={i * 80 + 300} />
+            </div>
             <div className="font-mono text-[8px] text-slate-700 uppercase tracking-wider mt-0.5">{unit}</div>
-            <div className="w-4 h-[1px] bg-copper mt-2.5 mb-1.5" />
+            <div className="w-4 h-[1px] bg-copper mt-2.5 mb-1.5" aria-hidden="true" />
             <div className="font-mono text-[10px] text-slate-600 lowercase">{label}</div>
           </motion.div>
         ))}
@@ -76,13 +139,13 @@ export function InteligenciaView({ onActivate }: InteligenciaViewProps) {
 
       {/* Capabilities */}
       <div>
-        <span className="font-mono text-[10px] text-copper uppercase tracking-widest block mb-6">
+        <span className="font-mono text-[10px] text-copper uppercase tracking-widest block mb-6" aria-hidden="true">
           // capacidades del núcleo
         </span>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {CAPABILITIES.map(({ icon: Icon, label, desc }) => (
             <div key={label} className="border border-slate-800 p-4 flex gap-4 bg-black/20">
-              <div className="w-8 h-8 border border-slate-800 flex items-center justify-center text-copper flex-shrink-0">
+              <div className="w-8 h-8 border border-slate-800 flex items-center justify-center text-copper flex-shrink-0" aria-hidden="true">
                 <Icon className="w-4 h-4" strokeWidth={1} />
               </div>
               <div>
@@ -97,7 +160,7 @@ export function InteligenciaView({ onActivate }: InteligenciaViewProps) {
       {/* CTA */}
       <div className="border border-slate-800 p-6 bg-[#030303] flex flex-col sm:flex-row items-center justify-between gap-5">
         <div>
-          <div className="font-mono text-[8px] text-slate-700 uppercase tracking-widest mb-1">
+          <div className="font-mono text-[8px] text-slate-700 uppercase tracking-widest mb-1" aria-hidden="true">
             // siguiente estado del sistema
           </div>
           <p className="font-mono text-sm text-white lowercase">

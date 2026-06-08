@@ -7,24 +7,31 @@ interface TickerProps {
   project: Project;
 }
 
+// Module-level set — persists across remounts so animation doesn't replay on view switch
+const seenProjects = new Set<string>();
+
 export function Ticker({ project }: TickerProps) {
   const fullText =
     project.status === 'live'
       ? `[EN TIEMPO REAL: ${project.statusLabel}]`
       : `[STANDBY: ${project.statusLabel}]`;
 
-  const [displayed, setDisplayed] = useState('');
-  const [charIdx, setCharIdx] = useState(0);
+  const alreadySeen = seenProjects.has(project.id);
+  const [displayed, setDisplayed] = useState(alreadySeen ? fullText : '');
+  const [charIdx, setCharIdx] = useState(alreadySeen ? fullText.length : 0);
 
-  // Reset when project changes
   useEffect(() => {
-    setDisplayed('');
-    setCharIdx(0);
+    if (!seenProjects.has(project.id)) {
+      setDisplayed('');
+      setCharIdx(0);
+    }
   }, [project.id]);
 
-  // Type characters one at a time
   useEffect(() => {
-    if (charIdx >= fullText.length) return;
+    if (charIdx >= fullText.length) {
+      seenProjects.add(project.id);
+      return;
+    }
     const t = setTimeout(() => {
       setDisplayed((prev) => prev + fullText[charIdx]);
       setCharIdx((i) => i + 1);
@@ -38,11 +45,12 @@ export function Ticker({ project }: TickerProps) {
         className={`w-1.5 h-1.5 flex-shrink-0 ${
           project.status === 'live' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-700'
         }`}
+        aria-hidden="true"
       />
       <span className="font-mono text-[9px] text-slate-500 truncate">
         {displayed}
         {charIdx < fullText.length && (
-          <span className="animate-pulse text-slate-700">_</span>
+          <span className="animate-pulse text-slate-700" aria-hidden="true">_</span>
         )}
       </span>
     </div>

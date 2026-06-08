@@ -8,9 +8,14 @@ import { motion } from "framer-motion";
 
 export function ContactContent() {
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setSubmitting(true);
+    // Simulate async send (replace with real API call)
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    setSubmitting(false);
     setSubmitted(true);
   };
 
@@ -66,36 +71,44 @@ export function ContactContent() {
         <form onSubmit={handleSubmit} className="space-y-6 pt-4">
           <div>
             <label htmlFor="name" className="block text-[10px] font-mono tracking-widest text-slate-500 uppercase mb-2">// nombre</label>
-            <input 
+            <input
               id="name"
-              required 
-              type="text" 
-              className="w-full bg-[#050505] border border-slate-800 rounded-none px-4 py-3 text-white placeholder-slate-600 focus:border-copper outline-none transition-all duration-300 font-mono text-xs" 
-              placeholder="[tu nombre]" 
+              name="name"
+              required
+              type="text"
+              disabled={submitting}
+              className="w-full bg-[#050505] border border-slate-800 rounded-none px-4 py-3 text-white placeholder-slate-600 focus:border-copper outline-none transition-all duration-300 font-mono text-xs disabled:opacity-50"
+              placeholder="[tu nombre]"
             />
           </div>
           <div>
             <label htmlFor="email" className="block text-[10px] font-mono tracking-widest text-slate-500 uppercase mb-2">// email</label>
-            <input 
+            <input
               id="email"
-              required 
-              type="email" 
-              className="w-full bg-[#050505] border border-slate-800 rounded-none px-4 py-3 text-white placeholder-slate-600 focus:border-copper outline-none transition-all duration-300 font-mono text-xs" 
-              placeholder="[tu@email.com]" 
+              name="email"
+              required
+              type="email"
+              disabled={submitting}
+              className="w-full bg-[#050505] border border-slate-800 rounded-none px-4 py-3 text-white placeholder-slate-600 focus:border-copper outline-none transition-all duration-300 font-mono text-xs disabled:opacity-50"
+              placeholder="[tu@email.com]"
             />
           </div>
           <div>
             <label htmlFor="message" className="block text-[10px] font-mono tracking-widest text-slate-500 uppercase mb-2">// mensaje</label>
-            <textarea 
+            <textarea
               id="message"
-              required 
-              rows={4} 
-              className="w-full bg-[#050505] border border-slate-800 rounded-none px-4 py-3 text-white resize-none placeholder-slate-600 focus:border-copper outline-none transition-all duration-300 font-mono text-xs" 
-              placeholder="[cuéntanos sobre tu proyecto...]" 
+              name="message"
+              required
+              rows={4}
+              disabled={submitting}
+              className="w-full bg-[#050505] border border-slate-800 rounded-none px-4 py-3 text-white resize-none placeholder-slate-600 focus:border-copper outline-none transition-all duration-300 font-mono text-xs disabled:opacity-50"
+              placeholder="[cuéntanos sobre tu proyecto...]"
             />
           </div>
-          <SmartButton type="submit" className="w-full py-3.5">
-            enviar mensaje <Send className="ml-2 w-3.5 h-3.5" strokeWidth={1} />
+          <SmartButton type="submit" disabled={submitting} className="w-full py-3.5">
+            {submitting
+              ? '> procesando...'
+              : <><span>enviar mensaje</span><Send className="ml-2 w-3.5 h-3.5" strokeWidth={1} /></>}
           </SmartButton>
         </form>
       </SmartCard>

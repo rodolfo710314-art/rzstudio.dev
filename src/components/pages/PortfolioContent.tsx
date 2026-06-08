@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { SmartCard } from "@/components/ui/SmartCard";
 import { SmartButton } from "@/components/ui/SmartButton";
 import { motion, AnimatePresence } from "framer-motion";
@@ -54,12 +55,24 @@ export function PortfolioContent() {
       
       <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <AnimatePresence mode='popLayout'>
+          {filteredProjects.length === 0 && (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="col-span-full py-20 text-center font-mono text-xs text-slate-600"
+            >
+              <span className="block mb-2 text-slate-700 text-lg">{'[ 0 resultados ]'}</span>
+              // no hay proyectos en esta categoría todavía.
+            </motion.div>
+          )}
           {filteredProjects.map((proyecto) => (
-            <motion.div 
-              key={proyecto.id} 
-              layout 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
+            <motion.div
+              key={proyecto.id}
+              layout
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
@@ -71,7 +84,7 @@ export function PortfolioContent() {
                   <span className="text-white font-bold text-sm tracking-tight">{proyecto.metric.toLowerCase()}</span>
                 </div>
                 <p className="text-slate-400 text-sm mb-6 flex-1 font-sans font-light leading-relaxed">{proyecto.description}</p>
-                
+
                 {/* tags */}
                 <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-slate-800/40 mb-6 font-mono text-xs lowercase">
                   {proyecto.tags.map((tag) => (
@@ -79,9 +92,11 @@ export function PortfolioContent() {
                   ))}
                 </div>
 
-                <SmartButton variant="outline" size="sm" className="w-full">
-                  ver case study <ArrowUpRight className="ml-1 w-3 h-3" />
-                </SmartButton>
+                <Link href="/contacto" className="block w-full">
+                  <SmartButton variant="outline" size="sm" className="w-full">
+                    ver case study <ArrowUpRight className="ml-1 w-3 h-3" />
+                  </SmartButton>
+                </Link>
               </SmartCard>
             </motion.div>
           ))}

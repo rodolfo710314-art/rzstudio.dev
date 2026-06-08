@@ -1,19 +1,26 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { SmartCard } from '@/components/ui/SmartCard';
 import { SmartButton } from '@/components/ui/SmartButton';
-import { TrendingUp, Clock, DollarSign, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { TrendingUp, Clock, ArrowRight } from 'lucide-react';
 
 export function ROICalculator() {
   const [budget, setBudget] = useState(10000);
   const [months, setMonths] = useState(6);
 
-  // Cálculos basados en métricas de la ficha técnica (62% ahorro costos, 86% tiempo)
+  // 62% cost reduction; 86% time saved.
+  // ROI grows with months: fixed AI setup cost (38% of one month) is amortized over the project duration.
   const savings = useMemo(() => budget * 0.62, [budget]);
   const timeSaved = useMemo(() => months * 0.86, [months]);
-  const roi = useMemo(() => ((savings / (budget - savings)) * 100).toFixed(0), [savings, budget]);
+  const roi = useMemo(() => {
+    const setupCost = budget * 0.38; // one-time AI transition overhead
+    const totalSavings = savings * months;
+    const aiProjectCost = (budget - savings) * months + setupCost;
+    const net = totalSavings - setupCost;
+    return Math.max(0, Math.round((net / aiProjectCost) * 100));
+  }, [savings, budget, months]);
 
   return (
     <SmartCard title="Calculadora de ROI con IA" className="max-w-4xl mx-auto overflow-visible font-mono text-xs lowercase">
@@ -92,9 +99,11 @@ export function ROICalculator() {
             </div>
           </div>
 
-          <SmartButton variant="primary" size="lg" className="w-full mt-2">
-            obtener reporte detallado <ArrowRight size={14} className="ml-2" />
-          </SmartButton>
+          <Link href="/contacto" className="block w-full mt-2">
+            <SmartButton variant="primary" size="lg" className="w-full">
+              obtener reporte detallado <ArrowRight size={14} className="ml-2" />
+            </SmartButton>
+          </Link>
         </div>
 
       </div>

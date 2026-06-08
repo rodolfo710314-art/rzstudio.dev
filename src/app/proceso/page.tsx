@@ -1,6 +1,8 @@
 import React from 'react';
+import Link from 'next/link';
 import { Search, PenTool, Code2, Rocket, ArrowDown } from "lucide-react";
 import { SmartCard } from "@/components/ui/SmartCard";
+import { SmartButton } from "@/components/ui/SmartButton";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -77,11 +79,12 @@ export default function ProcesoPage() {
 
         {/* BOTTOM CTA */}
         <div className="mt-32 text-center">
-          <div className="inline-flex flex-col items-center gap-4 font-mono text-xs lowercase">
-             <p className="text-slate-500">// ¿listo para compilar?</p>
-             <div className="w-[1px] h-12 bg-copper" />
-             <ArrowDown className="text-copper animate-bounce w-4 h-4" strokeWidth={1} />
-          </div>
+          <Link href="/contacto" className="inline-flex flex-col items-center gap-4 font-mono text-xs lowercase group">
+            <p className="text-slate-500 group-hover:text-copper transition-colors">// ¿listo para compilar?</p>
+            <div className="w-[1px] h-12 bg-copper" />
+            <ArrowDown className="text-copper animate-bounce w-4 h-4" strokeWidth={1} />
+            <SmartButton variant="primary" size="lg">iniciar proyecto_</SmartButton>
+          </Link>
         </div>
       </section>
     </main>

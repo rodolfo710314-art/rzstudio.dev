@@ -1,7 +1,7 @@
 import React from 'react';
 import { Metadata } from "next";
-import { Sparkles, Zap, Users, ShieldCheck, Globe, Cpu, Heart, MessageSquare } from "lucide-react";
-import { SmartCard } from "@/components/ui/SmartCard";
+import { Sparkles, Zap, Users, Cpu, Heart } from "lucide-react";
+import Link from 'next/link';
 import { SmartButton } from "@/components/ui/SmartButton";
 
 export const metadata: Metadata = {
@@ -103,7 +103,9 @@ export default function EstrellaPage() {
                este portal no busca la transacción monetaria; busca ser un faro. un testimonio vivo de que la tecnología, cuando se abraza con una intención clara de conexión humana, deja de ser una herramienta fría para convertirse en una extensión de nuestra propia capacidad de crear grandeza. es el futuro, hoy, validado por cada test en verde y cada línea de código majestuosa.
              </p>
              <div className="inline-flex gap-4">
-                <SmartButton variant="primary" size="lg">unirse al futuro_</SmartButton>
+                <Link href="/contacto">
+                  <SmartButton variant="primary" size="lg">unirse al futuro_</SmartButton>
+                </Link>
              </div>
           </section>
 

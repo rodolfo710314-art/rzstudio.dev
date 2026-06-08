@@ -1,4 +1,6 @@
 import React from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import { SmartCard } from "@/components/ui/SmartCard";
 import { Calendar, Clock, ArrowRight } from "lucide-react";
 import { Metadata } from "next";
@@ -54,16 +56,18 @@ export default function BlogPage() {
 
         {/* FEATURED POST */}
         <div className="mb-20 font-mono text-xs lowercase">
-          <div className="relative group rounded-none border border-slate-800 bg-[#0c0806] flex flex-col md:flex-row gap-8 p-4 md:p-8">
-            <div className="flex-1 relative aspect-video md:aspect-auto h-[300px] md:h-auto rounded-none overflow-hidden border border-slate-800">
-               <img 
-                src={POSTS[0].image} 
+          <div className="relative group border border-slate-800 bg-[#0c0806] flex flex-col md:flex-row gap-8 p-4 md:p-8">
+            <div className="flex-1 relative aspect-video md:aspect-auto h-[300px] md:h-auto overflow-hidden border border-slate-800">
+              <Image
+                src={POSTS[0].image}
                 alt={POSTS[0].title}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-               />
-               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent opacity-60" />
+                fill
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent opacity-60 pointer-events-none" />
             </div>
-            
+
             <div className="flex-1 flex flex-col justify-center py-6">
               <span className="text-copper text-[10px] tracking-widest font-bold uppercase mb-4 block font-mono">// destacado</span>
               <h2 className="text-2xl md:text-4xl font-bold text-white mb-6 leading-tight uppercase font-sans">
@@ -73,12 +77,15 @@ export default function BlogPage() {
                 {POSTS[0].excerpt}
               </p>
               <div className="flex items-center gap-6 text-slate-500 text-xs mb-8">
-                 <span className="flex items-center gap-1.5"><Calendar size={12} strokeWidth={1} /> {POSTS[0].date}</span>
-                 <span className="flex items-center gap-1.5"><Clock size={12} strokeWidth={1} /> {POSTS[0].readTime}</span>
+                <span className="flex items-center gap-1.5"><Calendar size={12} strokeWidth={1} /> {POSTS[0].date}</span>
+                <span className="flex items-center gap-1.5"><Clock size={12} strokeWidth={1} /> {POSTS[0].readTime}</span>
               </div>
-              <button className="text-white font-bold flex items-center gap-2 group/btn font-mono tracking-wide text-xs">
+              <Link
+                href={`/blog/${POSTS[0].id}`}
+                className="text-white font-bold flex items-center gap-2 group/btn font-mono tracking-wide text-xs w-fit"
+              >
                 leer artículo completo <ArrowRight className="group-hover/btn:translate-x-2 transition-transform text-copper w-3.5 h-3.5" strokeWidth={1} />
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -87,19 +94,21 @@ export default function BlogPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {POSTS.slice(1).map((post) => (
             <SmartCard key={post.id} title={post.title} className="flex flex-col group h-full font-mono text-xs lowercase">
-              <div className="aspect-video rounded-none overflow-hidden mb-6 relative border border-slate-800/80">
-                 <img 
-                  src={post.image} 
+              <div className="aspect-video overflow-hidden mb-6 relative border border-slate-800/80">
+                <Image
+                  src={post.image}
                   alt={post.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                 />
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                />
               </div>
               <p className="text-slate-400 text-sm mb-6 flex-1 font-sans font-light leading-relaxed">{post.excerpt}</p>
               <div className="flex items-center justify-between mt-auto border-t border-slate-800/40 pt-4">
-                 <span className="text-[9px] border border-slate-800 text-slate-400 px-2 py-0.5 rounded-none uppercase font-bold">[{post.category}]</span>
-                 <button className="text-copper hover:text-white transition-all duration-300">
-                    <ArrowRight size={16} strokeWidth={1} />
-                 </button>
+                <span className="text-[9px] border border-slate-800 text-slate-400 px-2 py-0.5 uppercase font-bold">[{post.category}]</span>
+                <Link href={`/blog/${post.id}`} aria-label={`leer ${post.title}`} className="text-copper hover:text-white transition-all duration-300">
+                  <ArrowRight size={16} strokeWidth={1} />
+                </Link>
               </div>
             </SmartCard>
           ))}

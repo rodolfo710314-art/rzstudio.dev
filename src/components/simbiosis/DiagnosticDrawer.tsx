@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Zap, Cpu, Hash } from 'lucide-react';
 import { Project } from './data';
+import { DiffBlock } from './DiffBlock';
 
 interface DiagnosticDrawerProps {
   project: Project | null;
@@ -13,6 +14,11 @@ interface DiagnosticDrawerProps {
   onDebate: (project: Project) => void;
 }
 
+type Resolution = 'merged' | 'purged' | null;
+
+// Skip log animation on re-open of a project already seen
+const seenLogs = new Set<string>();
+
 export function DiagnosticDrawer({
   project,
   onClose,
@@ -21,12 +27,40 @@ export function DiagnosticDrawer({
   onDebate,
 }: DiagnosticDrawerProps) {
   const [visibleLogs, setVisibleLogs] = useState<string[]>([]);
+  const [resolution, setResolution] = useState<Resolution>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
+  // Escape key handler
+  useEffect(() => {
+    if (!project) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onCloseRef.current();
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [project?.id]);
+
+  // Focus close button on open
+  useEffect(() => {
+    if (project) setTimeout(() => closeButtonRef.current?.focus(), 50);
+  }, [project?.id]);
+
+  // Log animation — skip if project was already opened before
   useEffect(() => {
     if (!project) {
       setVisibleLogs([]);
+      setResolution(null);
       return;
     }
+    setResolution(null);
+
+    if (seenLogs.has(project.id)) {
+      setVisibleLogs(project.auditLogs);
+      return;
+    }
+
     setVisibleLogs([]);
     let i = 0;
     const interval = setInterval(() => {
@@ -35,10 +69,21 @@ export function DiagnosticDrawer({
         i++;
       } else {
         clearInterval(interval);
+        seenLogs.add(project.id);
       }
     }, 650);
     return () => clearInterval(interval);
   }, [project?.id]);
+
+  function handleMerge(p: Project) {
+    setResolution('merged');
+    setTimeout(() => onMerge(p), 1400);
+  }
+
+  function handlePurge(p: Project) {
+    setResolution('purged');
+    setTimeout(() => onPurge(p), 1400);
+  }
 
   const METRICS = project
     ? [
@@ -61,11 +106,15 @@ export function DiagnosticDrawer({
             transition={{ duration: 0.2 }}
             onClick={onClose}
             className="fixed inset-0 bg-black/50 z-[100]"
+            aria-hidden="true"
           />
 
           {/* Panel */}
           <motion.aside
             key="drawer-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`panel de diagnóstico: ${project.name}`}
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
@@ -75,7 +124,7 @@ export function DiagnosticDrawer({
             {/* Header */}
             <div className="border-b border-slate-800 px-5 py-4 flex items-center justify-between flex-shrink-0">
               <div>
-                <span className="font-mono text-[8px] text-copper uppercase tracking-widest block">
+                <span className="font-mono text-[8px] text-copper uppercase tracking-widest block" aria-hidden="true">
                   // panel de diagnóstico
                 </span>
                 <h2 className="font-mono text-sm text-white lowercase mt-0.5">
@@ -83,6 +132,7 @@ export function DiagnosticDrawer({
                 </h2>
               </div>
               <button
+                ref={closeButtonRef}
                 onClick={onClose}
                 className="text-slate-700 hover:text-slate-300 transition-colors"
                 aria-label="cerrar panel"
@@ -95,7 +145,7 @@ export function DiagnosticDrawer({
             <div className="border-b border-slate-800 px-5 py-3 flex gap-7 flex-shrink-0 bg-black/20">
               {METRICS.map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex items-center gap-2">
-                  <Icon className="w-3 h-3 text-copper flex-shrink-0" strokeWidth={1.5} />
+                  <Icon className="w-3 h-3 text-copper flex-shrink-0" strokeWidth={1.5} aria-hidden="true" />
                   <div>
                     <div className="font-mono text-[7px] text-slate-700 uppercase tracking-wider">
                       {label}
@@ -108,12 +158,12 @@ export function DiagnosticDrawer({
 
             {/* Scrollable content */}
             <div className="flex-1 overflow-y-auto p-5 space-y-5">
-              {/* Terminal log — flujo de conciencia */}
+              {/* Terminal log */}
               <div>
-                <span className="font-mono text-[8px] text-slate-700 uppercase tracking-widest block mb-2">
+                <span className="font-mono text-[8px] text-slate-700 uppercase tracking-widest block mb-2" aria-hidden="true">
                   // flujo de conciencia ia
                 </span>
-                <div className="bg-black border border-slate-800 p-3 min-h-[110px] space-y-1.5">
+                <div className="bg-black border border-slate-800 p-3 min-h-[110px] space-y-1.5" aria-live="polite">
                   {visibleLogs.map((log, i) => (
                     <motion.div
                       key={i}
@@ -132,7 +182,7 @@ export function DiagnosticDrawer({
                     </motion.div>
                   ))}
                   {visibleLogs.length < project.auditLogs.length && (
-                    <span className="font-mono text-[10px] text-slate-800 animate-pulse">
+                    <span className="font-mono text-[10px] text-slate-800 animate-pulse" aria-hidden="true">
                       {'> _'}
                     </span>
                   )}
@@ -141,48 +191,54 @@ export function DiagnosticDrawer({
 
               {/* Micro-diff */}
               <div>
-                <span className="font-mono text-[8px] text-slate-700 uppercase tracking-widest block mb-2">
+                <span className="font-mono text-[8px] text-slate-700 uppercase tracking-widest block mb-2" aria-hidden="true">
                   // micro-diff propuesto
                 </span>
-                <div className="bg-black border border-slate-800 p-3 overflow-x-auto">
-                  {project.codeDiff.old.map((line, i) => (
-                    <div
-                      key={`old-${i}`}
-                      className="font-mono text-[9px] text-red-400/60 whitespace-pre leading-5"
-                    >
-                      {`- ${line}`}
-                    </div>
-                  ))}
-                  <div className="h-1.5" />
-                  {project.codeDiff.new.map((line, i) => (
-                    <div
-                      key={`new-${i}`}
-                      className="font-mono text-[9px] text-emerald-400/70 whitespace-pre leading-5"
-                    >
-                      {`+ ${line}`}
-                    </div>
-                  ))}
-                </div>
+                <DiffBlock codeDiff={project.codeDiff} />
               </div>
             </div>
+
+            {/* Resolution feedback */}
+            <AnimatePresence>
+              {resolution && (
+                <motion.div
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  role="status"
+                  className={`mx-5 mb-3 px-4 py-2.5 font-mono text-[9px] border ${
+                    resolution === 'merged'
+                      ? 'border-emerald-900 text-emerald-400/80 bg-emerald-950/20'
+                      : 'border-red-900/40 text-red-400/70 bg-red-950/10'
+                  }`}
+                >
+                  {resolution === 'merged'
+                    ? '✓ merge ejecutado. cambio registrado en historial.'
+                    : '✗ entorno purgado. estado restaurado a HEAD.'}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Action buttons */}
             <div className="border-t border-slate-800 px-5 py-4 flex gap-2 flex-shrink-0">
               <button
-                onClick={() => onMerge(project)}
-                className="flex-1 bg-copper text-black font-mono text-[8px] uppercase tracking-widest py-2.5 hover:bg-amber-600 transition-colors"
+                onClick={() => handleMerge(project)}
+                disabled={!!resolution}
+                className="flex-1 bg-copper text-black font-mono text-[8px] uppercase tracking-widest py-2.5 hover:bg-amber-600 transition-colors disabled:opacity-40"
               >
                 ejecutar merge
               </button>
               <button
                 onClick={() => onDebate(project)}
-                className="flex-1 border border-slate-700 text-slate-400 font-mono text-[8px] uppercase tracking-widest py-2.5 hover:border-slate-500 hover:text-slate-200 transition-colors"
+                disabled={!!resolution}
+                className="flex-1 border border-slate-700 text-slate-400 font-mono text-[8px] uppercase tracking-widest py-2.5 hover:border-slate-500 hover:text-slate-200 transition-colors disabled:opacity-40"
               >
                 rebatir solución
               </button>
               <button
-                onClick={() => onPurge(project)}
-                className="font-mono text-[8px] uppercase tracking-wider text-red-900/50 hover:text-red-500/60 px-4 border border-transparent hover:border-red-900/20 transition-colors"
+                onClick={() => handlePurge(project)}
+                disabled={!!resolution}
+                className="font-mono text-[8px] uppercase tracking-wider text-red-900/50 hover:text-red-500/60 px-4 border border-transparent hover:border-red-900/20 transition-colors disabled:opacity-40"
               >
                 purgar
               </button>

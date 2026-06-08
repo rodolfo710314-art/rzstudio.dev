@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { SmartCard } from "@/components/ui/SmartCard";
 import { SmartButton } from "@/components/ui/SmartButton";
 import { Smartphone, Globe, Bot, ShieldCheck, ArrowRight } from "lucide-react";
@@ -68,10 +69,12 @@ export default function ServiciosPage() {
                   </li>
                 ))}
               </ul>
-              <SmartButton variant="outline" className="w-full group">
-                saber más 
-                <ArrowRight className="ml-2 w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </SmartButton>
+              <Link href="/contacto" className="block w-full">
+                <SmartButton variant="outline" className="w-full group">
+                  saber más
+                  <ArrowRight className="ml-2 w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </SmartButton>
+              </Link>
             </SmartCard>
           ))}
         </div>
@@ -88,9 +91,11 @@ export default function ServiciosPage() {
             desarrollamos soluciones personalizadas para desafíos técnicos únicos. 
             cuéntanos tu idea y la haremos realidad.
           </p>
-          <SmartButton size="lg" variant="primary">
-            consultar proyecto especial
-          </SmartButton>
+          <Link href="/contacto">
+            <SmartButton size="lg" variant="primary">
+              consultar proyecto especial
+            </SmartButton>
+          </Link>
         </div>
       </section>
     </main>
