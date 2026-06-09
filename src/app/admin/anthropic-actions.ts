@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { verifySessionToken, COOKIE_NAME } from "@/lib/admin-session";
 import { setActiveKey, persistKeyToEnvFile, maskKey } from "@/lib/runtime-key";
 
@@ -18,7 +19,8 @@ export async function updateAnthropicKey(
   _prev: KeyUpdateState,
   formData: FormData
 ): Promise<KeyUpdateState> {
-  // Verify admin session
+  await connection(); // fuerza evaluación de process.env en runtime
+
   const secret = process.env.ADMIN_SECRET;
   if (!secret) return { error: "no configurado" };
 

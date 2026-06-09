@@ -3,6 +3,7 @@
 import { timingSafeEqual, createHmac } from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { createSessionToken, COOKIE_NAME } from "@/lib/admin-session";
 
 export interface LoginState {
@@ -13,11 +14,13 @@ export async function loginAction(
   _prev: LoginState,
   formData: FormData
 ): Promise<LoginState> {
+  await connection(); // fuerza evaluación de process.env en runtime, no en build-time
+
   const password = (formData.get("password") as string) ?? "";
 
   if (!password) return { error: "contraseña requerida" };
 
-  const adminSecret  = process.env.ADMIN_SECRET;
+  const adminSecret   = process.env.ADMIN_SECRET;
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!adminSecret || !adminPassword) {
