@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# APK leads & metadata (datos privados)
+/data/
+
+# APKs subidos (binarios, no versionar)
+/public/apks/

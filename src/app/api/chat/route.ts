@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getActiveKey } from '@/lib/runtime-key';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Mensaje demasiado largo' }, { status: 400 });
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const apiKey = getActiveKey();
 
     if (!apiKey) {
       return NextResponse.json({
