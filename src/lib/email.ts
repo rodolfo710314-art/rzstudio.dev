@@ -27,7 +27,7 @@ export async function sendEmail(to: string, subject: string, text: string): Prom
 }
 
 function baseUrl(): string {
-  return process.env.RZ_BASE_URL ?? "https://rzstudio.dev";
+  return (process.env.RZ_BASE_URL ?? "https://rzstudio.dev").trim().replace(/[,\/\s]+$/, "");
 }
 
 // ─── Plantillas (texto plano, diseño brutalista) ─────────────────────────────
