@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 
   if (!token) return NextResponse.json({ error: "token requerido" }, { status: 400 });
 
-  const existing = getToken(token);
+  const existing = await getToken(token);
   if (!existing) return NextResponse.json({ error: "token no encontrado" }, { status: 404 });
 
   if (existing.renewalCount >= DEFAULT_TESTING.max_renewals_per_tester) {
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const updated = extendToken(token, days);
+  const updated = await extendToken(token, days);
   if (!updated) return NextResponse.json({ error: "error al extender el token" }, { status: 500 });
 
   return NextResponse.json({ ok: true, token: updated });

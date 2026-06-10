@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, message: "token requerido" }, { status: 400 });
   }
 
-  const result = validateToken(token);
+  const result = await validateToken(token);
 
   const warningActive =
     result.ok &&

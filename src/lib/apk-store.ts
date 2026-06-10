@@ -1,28 +1,31 @@
-import path from "node:path";
-import { randomUUID } from "node:crypto";
-import { APK_DIR, dataFile, ensureDir, readJson, writeJson } from "./jstore";
+// Store de testers, tokens y metadata de APKs.
+// Fase B: async sobre la capa db.ts (Firestore en producción, JSON local en dev).
+// Colecciones: testers · build_tokens · apk_meta
 
-const TESTERS_FILE = dataFile("testers.json");
-const TOKENS_FILE  = dataFile("build-tokens.json");
-const META_FILE    = dataFile("apk-metadata.json");
+import { randomUUID } from "node:crypto";
+import { docGet, docSet, docDelete, colList } from "./db";
+
+const COL_TESTERS = "testers";
+const COL_TOKENS  = "build_tokens";
+const COL_META    = "apk_meta";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type TokenStatus = "pending" | "active" | "expired" | "revoked";
 
 export interface BuildToken {
+  id:                   string; // = token (doc id)
   token:                string;
   projectId:            string;
   testerId:             string;
   status:               TokenStatus;
   lifetimeDays:         number;
-  downloadUrlExpiresAt: string;        // ISO — 24h desde creación
-  firstActivatedAt:     string | null; // se fija en el primer heartbeat de la app
-  expiresAt:            string | null; // firstActivatedAt + lifetimeDays
+  downloadUrlExpiresAt: string;
+  firstActivatedAt:     string | null;
+  expiresAt:            string | null;
   lastHeartbeatAt:      string | null;
   renewalCount:         number;
   createdAt:            string;
-  // Seguimiento de correos (cron de mantenimiento)
   warningEmailSentAt?:  string | null;
   followupEmailSentAt?: string | null;
   expiredEmailSentAt?:  string | null;
@@ -38,6 +41,7 @@ export interface Tester {
 }
 
 export interface ApkMeta {
+  id:           string; // = projectId (doc id)
   projectId:    string;
   filename:     string;
   originalName: string;
@@ -58,84 +62,71 @@ export const DEFAULT_TESTING = {
 
 // ─── APK Metadata ─────────────────────────────────────────────────────────────
 
-export function getApkMeta(projectId: string): ApkMeta | null {
-  return readJson<ApkMeta[]>(META_FILE, []).find((m) => m.projectId === projectId) ?? null;
+export async function getApkMeta(projectId: string): Promise<ApkMeta | null> {
+  return docGet<ApkMeta>(COL_META, projectId);
 }
 
-export function listApkMeta(): ApkMeta[] {
-  return readJson<ApkMeta[]>(META_FILE, []);
+export async function listApkMeta(): Promise<ApkMeta[]> {
+  return colList<ApkMeta>(COL_META);
 }
 
-export function saveApkMeta(meta: ApkMeta) {
-  const all = readJson<ApkMeta[]>(META_FILE, []);
-  writeJson(META_FILE, [...all.filter((m) => m.projectId !== meta.projectId), meta]);
+export async function saveApkMeta(meta: Omit<ApkMeta, "id">): Promise<void> {
+  await docSet<ApkMeta>(COL_META, { id: meta.projectId, ...meta });
 }
 
-export function deleteApkMeta(projectId: string) {
-  writeJson(META_FILE, readJson<ApkMeta[]>(META_FILE, []).filter((m) => m.projectId !== projectId));
-}
-
-export function getApkPath(projectId: string, filename: string): string {
-  return path.join(APK_DIR, projectId, filename);
-}
-
-export function ensureApkDir(projectId: string) {
-  ensureDir(path.join(APK_DIR, projectId));
+export async function deleteApkMeta(projectId: string): Promise<void> {
+  await docDelete(COL_META, projectId);
 }
 
 // ─── Testers ──────────────────────────────────────────────────────────────────
 
-export function getTester(id: string): Tester | null {
-  return readJson<Tester[]>(TESTERS_FILE, []).find((t) => t.id === id) ?? null;
+export async function getTester(id: string): Promise<Tester | null> {
+  return docGet<Tester>(COL_TESTERS, id);
 }
 
-export function getTesterByEmail(email: string): Tester | null {
-  return readJson<Tester[]>(TESTERS_FILE, []).find(
-    (t) => t.email.toLowerCase() === email.toLowerCase()
-  ) ?? null;
+export async function getTesterByEmail(email: string): Promise<Tester | null> {
+  const all = await colList<Tester>(COL_TESTERS);
+  return all.find((t) => t.email.toLowerCase() === email.toLowerCase()) ?? null;
 }
 
-export function saveTester(tester: Tester): Tester {
-  const all = readJson<Tester[]>(TESTERS_FILE, []);
-  writeJson(TESTERS_FILE, [...all.filter((t) => t.id !== tester.id), tester]);
+export async function saveTester(tester: Tester): Promise<Tester> {
+  await docSet<Tester>(COL_TESTERS, tester);
   return tester;
 }
 
-export function listTesters(): Tester[] {
-  return readJson<Tester[]>(TESTERS_FILE, []);
+export async function listTesters(): Promise<Tester[]> {
+  return colList<Tester>(COL_TESTERS);
 }
 
 // ─── Build Tokens ─────────────────────────────────────────────────────────────
 
-export function getToken(token: string): BuildToken | null {
-  return readJson<BuildToken[]>(TOKENS_FILE, []).find((t) => t.token === token) ?? null;
+export async function getToken(token: string): Promise<BuildToken | null> {
+  return docGet<BuildToken>(COL_TOKENS, token);
 }
 
-export function listTokens(projectId?: string): BuildToken[] {
-  const all = readJson<BuildToken[]>(TOKENS_FILE, []);
-  return projectId ? all.filter((t) => t.projectId === projectId) : all;
+export async function listTokens(projectId?: string): Promise<BuildToken[]> {
+  return colList<BuildToken>(COL_TOKENS, projectId ? (t) => t.projectId === projectId : undefined);
 }
 
-export function listTesterTokens(testerId: string, projectId: string): BuildToken[] {
-  return readJson<BuildToken[]>(TOKENS_FILE, []).filter(
-    (t) => t.testerId === testerId && t.projectId === projectId
-  );
+export async function listTesterTokens(testerId: string, projectId: string): Promise<BuildToken[]> {
+  return colList<BuildToken>(COL_TOKENS, (t) => t.testerId === testerId && t.projectId === projectId);
 }
 
-export function saveToken(token: BuildToken) {
-  const all = readJson<BuildToken[]>(TOKENS_FILE, []);
-  writeJson(TOKENS_FILE, [...all.filter((t) => t.token !== token.token), token]);
+export async function saveToken(token: BuildToken): Promise<void> {
+  await docSet<BuildToken>(COL_TOKENS, token);
 }
 
-export function createBuildToken(
+export async function createBuildToken(
   projectId: string,
   testerId:  string,
   lifetimeDays = DEFAULT_TESTING.apk_lifetime_days,
   expiryHours  = DEFAULT_TESTING.download_link_expiry_hours,
-): BuildToken {
+): Promise<BuildToken> {
   const now = new Date();
+  const id  = randomUUID();
   const bt: BuildToken = {
-    token:                randomUUID(),
+    id,
+    token:                id,
     projectId,
     testerId,
     status:               "pending",
@@ -147,7 +138,7 @@ export function createBuildToken(
     renewalCount:         0,
     createdAt:            now.toISOString(),
   };
-  saveToken(bt);
+  await saveToken(bt);
   return bt;
 }
 
@@ -155,12 +146,11 @@ export function createBuildToken(
 
 export type RegisterVerdict =
   | { allowed: true; existing: BuildToken | null }
-  | { allowed: false; reason: "revoked" | "expired_no_renewals" | "expired_needs_admin" ; message: string };
+  | { allowed: false; reason: "revoked" | "expired_no_renewals" | "expired_needs_admin"; message: string };
 
-export function checkRegisterPolicy(testerId: string, projectId: string): RegisterVerdict {
-  const tokens = listTesterTokens(testerId, projectId);
+export async function checkRegisterPolicy(testerId: string, projectId: string): Promise<RegisterVerdict> {
+  const tokens = await listTesterTokens(testerId, projectId);
 
-  // Tester revocado: bloqueado permanentemente hasta intervención del admin
   if (tokens.some((t) => t.status === "revoked")) {
     return {
       allowed: false,
@@ -172,7 +162,6 @@ export function checkRegisterPolicy(testerId: string, projectId: string): Regist
   const existing = tokens.find((t) => t.status === "active" || t.status === "pending") ?? null;
   if (existing) return { allowed: true, existing };
 
-  // Token expirado: no se emite uno nuevo — la renovación pasa por el admin
   const expired = tokens.filter((t) => t.status === "expired");
   if (expired.length > 0) {
     const renewals = Math.max(...expired.map((t) => t.renewalCount));
@@ -203,8 +192,8 @@ export interface TokenCheck {
 }
 
 /** SOLO LECTURA — para la página de estado /activate. No muta nada. */
-export function getTokenStatus(token: string): TokenCheck {
-  const bt = getToken(token);
+export async function getTokenStatus(token: string): Promise<TokenCheck> {
+  const bt = await getToken(token);
   if (!bt) return { ok: false, status: "revoked", daysRemaining: null, message: "token no encontrado" };
 
   if (bt.status === "revoked") {
@@ -230,8 +219,8 @@ export function getTokenStatus(token: string): TokenCheck {
 }
 
 /** MUTANTE — heartbeat de la app Android. Activa en el primer arranque. */
-export function validateToken(token: string): TokenCheck {
-  const bt = getToken(token);
+export async function validateToken(token: string): Promise<TokenCheck> {
+  const bt = await getToken(token);
   if (!bt) return { ok: false, status: "revoked", daysRemaining: null, message: "token no encontrado" };
 
   if (bt.status === "revoked") {
@@ -241,7 +230,7 @@ export function validateToken(token: string): TokenCheck {
   const now = new Date();
 
   if (bt.status === "pending" && !bt.firstActivatedAt) {
-    saveToken({
+    await saveToken({
       ...bt,
       status:           "active",
       firstActivatedAt: now.toISOString(),
@@ -255,26 +244,26 @@ export function validateToken(token: string): TokenCheck {
   }
 
   if (bt.expiresAt && new Date(bt.expiresAt) < now) {
-    if (bt.status !== "expired") saveToken({ ...bt, status: "expired" });
+    if (bt.status !== "expired") await saveToken({ ...bt, status: "expired" });
     return { ok: false, status: "expired", daysRemaining: 0, message: "periodo de prueba expirado" };
   }
 
   const daysRemaining = bt.expiresAt
     ? Math.max(0, Math.ceil((new Date(bt.expiresAt).getTime() - now.getTime()) / 86_400_000))
     : 0;
-  saveToken({ ...bt, lastHeartbeatAt: now.toISOString() });
+  await saveToken({ ...bt, lastHeartbeatAt: now.toISOString() });
   return { ok: true, status: "active", daysRemaining, message: `${daysRemaining} días restantes` };
 }
 
-export function revokeToken(token: string): boolean {
-  const bt = getToken(token);
+export async function revokeToken(token: string): Promise<boolean> {
+  const bt = await getToken(token);
   if (!bt) return false;
-  saveToken({ ...bt, status: "revoked" });
+  await saveToken({ ...bt, status: "revoked" });
   return true;
 }
 
-export function extendToken(token: string, days: number): BuildToken | null {
-  const bt = getToken(token);
+export async function extendToken(token: string, days: number): Promise<BuildToken | null> {
+  const bt = await getToken(token);
   if (!bt) return null;
 
   const base = bt.expiresAt ? new Date(bt.expiresAt).getTime() : Date.now();
@@ -286,16 +275,16 @@ export function extendToken(token: string, days: number): BuildToken | null {
     warningEmailSentAt: null,
     expiredEmailSentAt: null,
   };
-  saveToken(updated);
+  await saveToken(updated);
   return updated;
 }
 
 // ─── Validación de la ventana de descarga (24h) ───────────────────────────────
 
-export function isDownloadValid(token: string): { valid: boolean; meta: ApkMeta | null } {
-  const bt = getToken(token);
+export async function isDownloadValid(token: string): Promise<{ valid: boolean; meta: ApkMeta | null }> {
+  const bt = await getToken(token);
   if (!bt || bt.status === "revoked") return { valid: false, meta: null };
   if (new Date(bt.downloadUrlExpiresAt) < new Date()) return { valid: false, meta: null };
-  const meta = getApkMeta(bt.projectId);
+  const meta = await getApkMeta(bt.projectId);
   return { valid: !!meta, meta };
 }

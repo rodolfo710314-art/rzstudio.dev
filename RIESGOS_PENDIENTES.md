@@ -10,17 +10,16 @@ e incluir al menos un pendiente relacionado con el área que se toca.
 - [x] **#3** Anti fuerza bruta en login admin (5 intentos/min por IP) — 10/06/2026
 - [x] **#4** Ruta de diagnóstico `/api/admin/env-check` eliminada — 10/06/2026
 - [x] **#9** Consentimiento de datos: checkbox + enlaces a `/legal/privacidad` y `/legal/terminos` en AndroidModal y formulario de contacto, validado también server-side — 11/06/2026 (textos legales en borrador, pendiente VoBo de abogado)
+- [x] **#2a/#2b** Migración a Firestore + GCS con doble driver (`RZ_STORAGE` / `RZ_GCS_BUCKET`): testers, tokens, apk_meta, actas, usage, judge_log y contact-leads. Dev local sigue en JSON. — 11/06/2026 (falta activar en Cloud Run: ver #2c)
 
 ## 🔴 Pendientes — alta prioridad
 
-- [ ] **#2a Cloud Run a una sola instancia** (config, no código — aplicar YA en consola):
-  ```
-  gcloud run services update SERVICIO --max-instances=1
-  ```
-  Sin esto, el storage JSON sufre condiciones de carrera entre instancias.
-- [ ] **#2b Migrar storage JSON → Firestore o Supabase** (Bloque 1 del documento original).
-  Elimina las condiciones de carrera de raíz y permite escalar a 2+ instancias.
-  Afecta: `src/lib/jstore.ts`, `apk-store.ts`, `actas.ts`, `usage.ts`, `iron-judge.ts`, `rate-limit.ts`.
+- [ ] **#2c Activar Firestore en Cloud Run** (el código ya está, falta la config):
+  1. Rol a la service account: `roles/datastore.user`
+  2. Bucket: `gcloud storage buckets create gs://rzstudio-apks --location=us-west1` + `roles/storage.objectAdmin`
+  3. Variables: `RZ_STORAGE=firestore` y `RZ_GCS_BUCKET=rzstudio-apks`
+  4. Mantener `--max-instances=1` SOLO por el rate limiter en memoria (ver abajo);
+     los datos ya no sufren condiciones de carrera.
 
 ## 🟠 Pendientes — media prioridad
 

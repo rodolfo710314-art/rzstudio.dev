@@ -18,11 +18,11 @@ export async function GET(req: NextRequest) {
   }
 
   const projectId = req.nextUrl.searchParams.get("projectId") ?? undefined;
-  const tokens    = listTokens(projectId);
+  const tokens    = await listTokens(projectId);
 
   // Enrich with tester info
-  const enriched = tokens.map((t) => {
-    const tester = getTester(t.testerId);
+  const enriched = await Promise.all(tokens.map(async (t) => {
+    const tester = await getTester(t.testerId);
     return {
       ...t,
       tester: tester ? { nombre: tester.nombre, email: tester.email, rol: tester.rol } : null,
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
         ? Math.max(0, Math.ceil((new Date(t.expiresAt).getTime() - Date.now()) / 86_400_000))
         : null,
     };
-  });
+  }));
 
   // Sort: active first, then by createdAt desc
   enriched.sort((a, b) => {

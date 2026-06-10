@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     const verdict  = await judgeCode(projectId, proposal, manifest);
 
     if (!verdict.approved) {
-      const acta = createActa({
+      const acta = await createActa({
         projectId,
         projectName:  project?.name ?? projectId,
         hallazgo:     project?.statusLabel ?? "veredicto directo desde panel",
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     }
 
     const gh = await mergeAiPr(manifest);
-    const acta = createActa({
+    const acta = await createActa({
       projectId,
       projectName:  project?.name ?? projectId,
       hallazgo:     project?.statusLabel ?? "veredicto directo desde panel",
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
   }
 
   const gh = await purgeAiPr(manifest);
-  const acta = createActa({
+  const acta = await createActa({
     projectId,
     projectName: project?.name ?? projectId,
     hallazgo:    project?.statusLabel ?? "veredicto directo desde panel",

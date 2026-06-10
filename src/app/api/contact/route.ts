@@ -4,11 +4,10 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
-import { dataFile, readJson, writeJson } from "@/lib/jstore";
+import { docSet } from "@/lib/db";
 import { sendEmail, emailConfigured } from "@/lib/email";
 import { checkRateLimit, clientIp } from "@/lib/rate-limit";
 
-const LEADS_FILE    = dataFile("contact-leads.json");
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL ?? "rodolfog@rzstudio.dev";
 
 export interface ContactLead {
@@ -86,8 +85,7 @@ ${mensaje}
     emailed,
     createdAt: new Date().toISOString(),
   };
-  const all = readJson<ContactLead[]>(LEADS_FILE, []);
-  writeJson(LEADS_FILE, [...all, lead]);
+  await docSet("contact-leads", lead);
 
   return NextResponse.json({ ok: true });
 }

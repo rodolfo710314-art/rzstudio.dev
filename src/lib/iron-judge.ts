@@ -4,10 +4,10 @@
 
 import { getActiveKey } from "./runtime-key";
 import { recordUsage } from "./usage";
-import { dataFile, appendLog, readLog } from "./jstore";
+import { logAppend, logTail } from "./db";
 import type { RzManifest } from "./manifest";
 
-const JUDGE_LOG = dataFile("iron-judge-log.jsonl");
+const JUDGE_COL   = "judge_log";
 const JUDGE_MODEL = "claude-haiku-4-5";
 
 export interface JudgeVerdict {
@@ -74,14 +74,14 @@ export async function judgeCode(
       reasons:  [`el juez no pudo evaluar (anthropic ${res.status}) — veto por defecto`],
       raw:      "",
     };
-    logVerdict(projectId, verdict);
+    await logVerdict(projectId, verdict);
     return verdict;
   }
 
   const data = await res.json();
   const text: string = data?.content?.[0]?.text ?? "";
 
-  recordUsage({
+  await recordUsage({
     projectId,
     agent:        "juez",
     model:        JUDGE_MODEL,
@@ -104,12 +104,12 @@ export async function judgeCode(
     verdict = { approved: false, reasons: ["respuesta del juez ilegible — veto por defecto"], raw: text.slice(0, 300) };
   }
 
-  logVerdict(projectId, verdict);
+  await logVerdict(projectId, verdict);
   return verdict;
 }
 
-function logVerdict(projectId: string, v: JudgeVerdict) {
-  appendLog(JUDGE_LOG, {
+async function logVerdict(projectId: string, v: JudgeVerdict): Promise<void> {
+  await logAppend(JUDGE_COL, {
     ts: new Date().toISOString(),
     projectId,
     approved: v.approved,
@@ -117,6 +117,6 @@ function logVerdict(projectId: string, v: JudgeVerdict) {
   } satisfies JudgeLogEntry);
 }
 
-export function getJudgeLog(limit = 50): JudgeLogEntry[] {
-  return readLog<JudgeLogEntry>(JUDGE_LOG, limit).reverse();
+export async function getJudgeLog(limit = 50): Promise<JudgeLogEntry[]> {
+  return logTail<JudgeLogEntry>(JUDGE_COL, limit);
 }

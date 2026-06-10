@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "email inválido" }, { status: 400 });
   }
 
-  const meta = getApkMeta(projectId);
+  const meta = await getApkMeta(projectId);
   if (!meta) {
     return NextResponse.json(
       { error: "no hay APK disponible para este proyecto" },
@@ -48,11 +48,11 @@ export async function POST(req: NextRequest) {
 
   const ip = req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip") ?? undefined;
 
-  let tester = getTesterByEmail(email);
+  let tester = await getTesterByEmail(email);
   const isNewTester = !tester;
 
   if (!tester) {
-    tester = saveTester({
+    tester = await saveTester({
       id:        randomUUID(),
       email,
       nombre,
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
 
   // Política de registro: bloquea testers revocados y expirados sin renovaciones.
   // La renovación de un token expirado solo la otorga el admin (extend).
-  const policy = checkRegisterPolicy(tester.id, projectId);
+  const policy = await checkRegisterPolicy(tester.id, projectId);
   if (!policy.allowed) {
     return NextResponse.json({ error: policy.message, reason: policy.reason }, { status: 403 });
   }
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const bt = createBuildToken(
+  const bt = await createBuildToken(
     projectId,
     tester.id,
     DEFAULT_TESTING.apk_lifetime_days,

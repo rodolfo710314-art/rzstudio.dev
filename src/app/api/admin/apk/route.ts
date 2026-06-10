@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/admin-auth";
-import {
-  saveApkMeta, listApkMeta, deleteApkMeta,
-  getApkPath, ensureApkDir,
-  getApkMeta,
-} from "@/lib/apk-store";
-import fs from "node:fs";
+import { saveApkMeta, listApkMeta, deleteApkMeta, getApkMeta } from "@/lib/apk-store";
+import { saveApkBlob, deleteApkBlob } from "@/lib/blob";
 
 // GET /api/admin/apk — list all uploaded APKs
 export async function GET() {
   if (!(await verifyAdmin())) {
     return NextResponse.json({ error: "no autorizado" }, { status: 401 });
   }
-  return NextResponse.json(listApkMeta());
+  return NextResponse.json(await listApkMeta());
 }
 
 // POST /api/admin/apk — upload APK for a project
@@ -37,18 +33,12 @@ export async function POST(req: NextRequest) {
   const safeId   = projectId.replace(/[^a-z0-9-]/gi, "_");
   const filename = `app-${safeId}-v${version}.apk`;
 
-  ensureApkDir(safeId);
-  const dest = getApkPath(safeId, filename);
-
-  // Delete previous APK for this project if any
-  const prev = getApkMeta(safeId);
-  if (prev) {
-    const prevPath = getApkPath(safeId, prev.filename);
-    if (fs.existsSync(prevPath)) fs.unlinkSync(prevPath);
-  }
+  // Eliminar el binario anterior del proyecto, si existe
+  const prev = await getApkMeta(safeId);
+  if (prev) await deleteApkBlob(safeId, prev.filename);
 
   const buf = Buffer.from(await file.arrayBuffer());
-  fs.writeFileSync(dest, buf);
+  await saveApkBlob(safeId, filename, buf);
 
   const meta = {
     projectId:    safeId,
@@ -59,7 +49,7 @@ export async function POST(req: NextRequest) {
     uploadedAt:   new Date().toISOString(),
   };
 
-  saveApkMeta(meta);
+  await saveApkMeta(meta);
 
   return NextResponse.json({ ok: true, meta });
 }
@@ -75,14 +65,13 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "projectId requerido" }, { status: 400 });
   }
 
-  const meta = getApkMeta(projectId);
+  const meta = await getApkMeta(projectId);
   if (!meta) {
     return NextResponse.json({ error: "no hay APK para este proyecto" }, { status: 404 });
   }
 
-  const filePath = getApkPath(projectId, meta.filename);
-  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-  deleteApkMeta(projectId);
+  await deleteApkBlob(projectId, meta.filename);
+  await deleteApkMeta(projectId);
 
   return NextResponse.json({ ok: true });
 }

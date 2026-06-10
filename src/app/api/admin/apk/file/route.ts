@@ -1,10 +1,9 @@
 // Descarga directa del APK para el administrador (sin token de tester).
-// Necesaria porque con RZ_APK_DIR el archivo puede vivir fuera de /public.
 
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/admin-auth";
-import { getApkMeta, getApkPath } from "@/lib/apk-store";
-import fs from "node:fs";
+import { getApkMeta } from "@/lib/apk-store";
+import { readApkBlob } from "@/lib/blob";
 
 export async function GET(req: NextRequest) {
   if (!(await verifyAdmin())) {
@@ -14,15 +13,15 @@ export async function GET(req: NextRequest) {
   const projectId = req.nextUrl.searchParams.get("projectId")?.trim();
   if (!projectId) return NextResponse.json({ error: "projectId requerido" }, { status: 400 });
 
-  const meta = getApkMeta(projectId);
+  const meta = await getApkMeta(projectId);
   if (!meta) return NextResponse.json({ error: "sin APK para este proyecto" }, { status: 404 });
 
-  const filePath = getApkPath(projectId, meta.filename);
-  if (!fs.existsSync(filePath)) {
+  const data = await readApkBlob(projectId, meta.filename);
+  if (!data) {
     return NextResponse.json({ error: "archivo no encontrado en storage" }, { status: 404 });
   }
 
-  return new NextResponse(fs.readFileSync(filePath), {
+  return new NextResponse(new Uint8Array(data), {
     status: 200,
     headers: {
       "Content-Type":        "application/vnd.android.package-archive",

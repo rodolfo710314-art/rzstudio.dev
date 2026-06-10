@@ -1,11 +1,10 @@
-// Cost Governor — registro de tokens consumidos por proyecto y agente (doc §7 Bloque 7).
-// Cada llamada a la API de Anthropic se registra aquí; el dashboard muestra
-// consumo vs presupuesto mensual del manifiesto.
+// Cost Governor — registro de tokens consumidos por proyecto y agente.
+// Fase B: async sobre db.ts (colección `usage` en Firestore | JSONL local).
 
-import { dataFile, appendLog, readLog } from "./jstore";
+import { logAppend, logRead } from "./db";
 import { loadManifest } from "./manifest";
 
-const USAGE_FILE = dataFile("usage-log.jsonl");
+const COL = "usage";
 
 export interface UsageEntry {
   ts:           string;
@@ -16,8 +15,8 @@ export interface UsageEntry {
   outputTokens: number;
 }
 
-export function recordUsage(entry: Omit<UsageEntry, "ts">) {
-  appendLog(USAGE_FILE, { ts: new Date().toISOString(), ...entry });
+export async function recordUsage(entry: Omit<UsageEntry, "ts">): Promise<void> {
+  await logAppend(COL, { ts: new Date().toISOString(), ...entry });
 }
 
 export interface ProjectUsage {
@@ -31,10 +30,10 @@ export interface ProjectUsage {
 }
 
 /** Consumo del mes en curso, agrupado por proyecto. */
-export function getMonthlyUsage(): ProjectUsage[] {
-  const now   = new Date();
-  const month = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
-  const all   = readLog<UsageEntry>(USAGE_FILE, 50_000).filter((e) => e.ts.startsWith(month));
+export async function getMonthlyUsage(): Promise<ProjectUsage[]> {
+  const now        = new Date();
+  const monthStart = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-01`;
+  const all        = await logRead<UsageEntry>(COL, monthStart);
 
   const byProject = new Map<string, { input: number; output: number }>();
   for (const e of all) {
@@ -62,15 +61,16 @@ export function getMonthlyUsage(): ProjectUsage[] {
 }
 
 /** True si el proyecto agotó su presupuesto mensual — bloquea nuevas llamadas. */
-export function isOverBudget(projectId: string): boolean {
-  const usage = getMonthlyUsage().find((u) => u.projectId === projectId);
+export async function isOverBudget(projectId: string): Promise<boolean> {
+  const usage = (await getMonthlyUsage()).find((u) => u.projectId === projectId);
   return !!usage && usage.budgetMonthly !== null && usage.totalTokens >= usage.budgetMonthly;
 }
 
 /** Tokens consumidos HOY (UTC) por un projectId — para topes diarios (ej. chat público). */
-export function getDailyTokens(projectId: string): number {
+export async function getDailyTokens(projectId: string): Promise<number> {
   const today = new Date().toISOString().slice(0, 10);
-  return readLog<UsageEntry>(USAGE_FILE, 50_000)
-    .filter((e) => e.projectId === projectId && e.ts.startsWith(today))
+  const all   = await logRead<UsageEntry>(COL, today);
+  return all
+    .filter((e) => e.projectId === projectId)
     .reduce((sum, e) => sum + e.inputTokens + e.outputTokens, 0);
 }

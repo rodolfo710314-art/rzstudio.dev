@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   const { token } = await req.json().catch(() => ({}));
   if (!token) return NextResponse.json({ error: "token requerido" }, { status: 400 });
 
-  const ok = revokeToken(token);
+  const ok = await revokeToken(token);
   if (!ok) return NextResponse.json({ error: "token no encontrado" }, { status: 404 });
 
   return NextResponse.json({ ok: true, message: "token revocado" });

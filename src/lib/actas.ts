@@ -1,44 +1,41 @@
-// Actas de Simbiosis (doc §11) — el Agente Historiador documenta cada sesión
-// del War Room: hallazgo, debate, resolución y el prompt de autorización humano.
-// Jerarquía: Proyecto → Iteraciones → Sesión de Debate.
+// Actas de Simbiosis (doc §11) — documentación automática de cada sesión.
+// Fase B: colección `actas` (el markdown viaja dentro del documento — <1MB, sobra).
 
-import fs from "node:fs";
-import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { DATA_DIR, ensureDir, dataFile, readJson, writeJson } from "./jstore";
+import { docGet, docSet, colList } from "./db";
 
-const ACTAS_DIR   = path.join(DATA_DIR, "actas");
-const ACTAS_INDEX = dataFile("actas-index.json");
+const COL = "actas";
 
-export interface ActaMeta {
+export interface ActaDoc {
   id:          string;
   projectId:   string;
   resolution:  "merged" | "purged" | "vetoed" | "abierta";
   triggerUsed: string | null;
   createdAt:   string;
-  file:        string;
+  markdown:    string;
 }
+
+export type ActaMeta = Omit<ActaDoc, "markdown">;
 
 export interface ActaInput {
   projectId:    string;
   projectName:  string;
   hallazgo:     string;
   transcript:   { role: string; content: string }[];
-  resolution:   ActaMeta["resolution"];
+  resolution:   ActaDoc["resolution"];
   triggerUsed:  string | null;
   judgeReasons?: string[];
 }
 
-export function createActa(input: ActaInput): ActaMeta {
+export async function createActa(input: ActaInput): Promise<ActaMeta> {
   const id  = randomUUID().slice(0, 8);
   const now = new Date();
-  const file = `${input.projectId}/${now.toISOString().slice(0, 10)}-${id}.md`;
 
   const debate = input.transcript
     .map((m) => `**${m.role === "user" ? "administrador" : "agente"}:** ${m.content}`)
     .join("\n\n");
 
-  const md = `# Acta de Simbiosis — ${input.projectName}
+  const markdown = `# Acta de Simbiosis — ${input.projectName}
 
 - **id de sesión:** ${id}
 - **proyecto:** ${input.projectId}
@@ -63,48 +60,40 @@ ${input.resolution === "merged" ? "✓ aprobado e integrado por el administrador
   : "sesión cerrada sin resolución."}
 `;
 
-  const fullPath = path.join(ACTAS_DIR, file);
-  ensureDir(path.dirname(fullPath));
-  fs.writeFileSync(fullPath, md);
-
-  const meta: ActaMeta = {
+  const doc: ActaDoc = {
     id,
     projectId:   input.projectId,
     resolution:  input.resolution,
     triggerUsed: input.triggerUsed,
     createdAt:   now.toISOString(),
-    file,
+    markdown,
   };
+  await docSet<ActaDoc>(COL, doc);
 
-  const index = readJson<ActaMeta[]>(ACTAS_INDEX, []);
-  writeJson(ACTAS_INDEX, [...index, meta]);
+  const { markdown: _omit, ...meta } = doc;
   return meta;
 }
 
-export function listActas(projectId?: string): ActaMeta[] {
-  const all = readJson<ActaMeta[]>(ACTAS_INDEX, []);
-  return (projectId ? all.filter((a) => a.projectId === projectId) : all)
+export async function listActas(projectId?: string): Promise<ActaMeta[]> {
+  const all = await colList<ActaDoc>(COL, projectId ? (a) => a.projectId === projectId : undefined);
+  return all
+    .map(({ markdown: _omit, ...meta }) => meta)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
-export function readActa(id: string): string | null {
-  const meta = readJson<ActaMeta[]>(ACTAS_INDEX, []).find((a) => a.id === id);
-  if (!meta) return null;
-  try {
-    return fs.readFileSync(path.join(ACTAS_DIR, meta.file), "utf-8");
-  } catch {
-    return null;
-  }
+export async function readActa(id: string): Promise<string | null> {
+  const doc = await docGet<ActaDoc>(COL, id);
+  return doc?.markdown ?? null;
 }
 
-/** Recuperación de contexto para futuras sesiones (memoria del proyecto, doc §11.2).
- *  Versión local sin vector DB: entrega las últimas N actas del proyecto. */
-export function recallContext(projectId: string, maxActas = 3): string {
-  const recent = listActas(projectId).slice(0, maxActas);
+/** Memoria del proyecto (doc §11.2) — versión local: últimas N actas.
+ *  (La recuperación semántica con la búsqueda vectorial de Firestore llega con el RAG.) */
+export async function recallContext(projectId: string, maxActas = 3): Promise<string> {
+  const all = await colList<ActaDoc>(COL, (a) => a.projectId === projectId);
+  const recent = all
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .slice(0, maxActas);
   if (recent.length === 0) return "";
-  const bodies = recent
-    .map((a) => readActa(a.id))
-    .filter(Boolean)
-    .map((md) => (md as string).slice(0, 2000));
+  const bodies = recent.map((a) => a.markdown.slice(0, 2000));
   return `\n\nMEMORIA DEL PROYECTO (actas de sesiones anteriores — no repitas debates ya resueltos):\n${bodies.join("\n---\n")}`;
 }

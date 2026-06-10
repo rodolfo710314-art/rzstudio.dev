@@ -12,12 +12,12 @@ type Props = { params: Promise<{ token: string }> };
 export default async function ActivatePage({ params }: Props) {
   const { token } = await params;
 
-  const bt = getToken(token);
+  const bt = await getToken(token);
   if (!bt) return <ErrorScreen message="token no encontrado o inválido" />;
 
-  const result    = getTokenStatus(token); // solo lectura — visitar esta página NO activa el token
-  const meta      = getApkMeta(bt.projectId);
-  const { valid } = isDownloadValid(token);
+  const result    = await getTokenStatus(token); // solo lectura — visitar esta página NO activa el token
+  const meta      = await getApkMeta(bt.projectId);
+  const { valid } = await isDownloadValid(token);
   const project   = PROJECTS.find((p) => p.id === bt.projectId);
 
   return (

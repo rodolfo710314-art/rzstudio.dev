@@ -11,7 +11,7 @@ import { getMonthlyUsage } from "@/lib/usage";
 import { getJudgeLog } from "@/lib/iron-judge";
 import { listActas, readActa } from "@/lib/actas";
 import { listManifests } from "@/lib/manifest";
-import { dataFile, readJson } from "@/lib/jstore";
+import { colList } from "@/lib/db";
 import type { ContactLead } from "@/app/api/contact/route";
 
 export async function GET(req: NextRequest) {
@@ -22,14 +22,21 @@ export async function GET(req: NextRequest) {
   // Lectura de una acta individual: /api/admin/ops?acta=<id>
   const actaId = req.nextUrl.searchParams.get("acta");
   if (actaId) {
-    const md = readActa(actaId);
+    const md = await readActa(actaId);
     if (!md) return NextResponse.json({ error: "acta no encontrada" }, { status: 404 });
     return NextResponse.json({ id: actaId, markdown: md });
   }
 
-  const contactLeads = readJson<ContactLead[]>(dataFile("contact-leads.json"), [])
-    .slice(-50)
-    .reverse()
+  const [usage, actas, judgeLog, leads] = await Promise.all([
+    getMonthlyUsage(),
+    listActas(),
+    getJudgeLog(30),
+    colList<ContactLead>("contact-leads"),
+  ]);
+
+  const contactLeads = leads
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .slice(0, 50)
     .map(({ id, nombre, email, mensaje, emailed, createdAt }) => ({
       id, nombre, email, emailed, createdAt,
       mensaje: mensaje.slice(0, 300),
@@ -41,11 +48,11 @@ export async function GET(req: NextRequest) {
       email:       emailConfigured(),
       github:      githubConfigured(),
       cron:        !!process.env.CRON_SECRET,
-      persistence: isPersistentStorage(),
+      persistence: isPersistentStorage() || process.env.RZ_STORAGE === "firestore",
     },
-    usage:        getMonthlyUsage(),
-    actas:        listActas().slice(0, 30),
-    judgeLog:     getJudgeLog(30),
+    usage,
+    actas:        actas.slice(0, 30),
+    judgeLog,
     contactLeads,
     manifests:    listManifests().map((m) => ({ project_id: m.project_id, name: m.name })),
   });

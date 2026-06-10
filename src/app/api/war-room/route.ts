@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     const verdict = await judgeCode(projectId, proposal, manifest);
 
     if (!verdict.approved) {
-      const acta = createActa({
+      const acta = await createActa({
         projectId,
         projectName:  project?.name ?? projectId,
         hallazgo:     project?.statusLabel ?? "sesión on-demand",
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     }
 
     const gh = await mergeAiPr(manifest);
-    const acta = createActa({
+    const acta = await createActa({
       projectId,
       projectName:  project?.name ?? projectId,
       hallazgo:     project?.statusLabel ?? "sesión on-demand",
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
 
   if (trigger === "purge") {
     const gh = await purgeAiPr(manifest);
-    const acta = createActa({
+    const acta = await createActa({
       projectId,
       projectName: project?.name ?? projectId,
       hallazgo:    project?.statusLabel ?? "sesión on-demand",
@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (isOverBudget(projectId)) {
+  if (await isOverBudget(projectId)) {
     return NextResponse.json(
       { error: `presupuesto mensual de tokens agotado para el proyecto ${projectId} — el cost governor bloqueó la llamada` },
       { status: 429 },
@@ -149,7 +149,7 @@ Log de auditoría:\n${project.auditLogs.join("\n")}
 Diff propuesto en debate:\n--- código actual\n${project.codeDiff.old.join("\n")}\n+++ código propuesto\n${project.codeDiff.new.join("\n")}`
     : "";
 
-  const system = prompt + evidence + recallContext(projectId);
+  const system = prompt + evidence + (await recallContext(projectId));
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -173,7 +173,7 @@ Diff propuesto en debate:\n--- código actual\n${project.codeDiff.old.join("\n")
   }
 
   const data = await res.json();
-  recordUsage({
+  await recordUsage({
     projectId,
     agent:        "ingeniero",
     model:        MODEL,

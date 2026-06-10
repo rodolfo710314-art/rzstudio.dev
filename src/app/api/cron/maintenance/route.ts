@@ -30,24 +30,24 @@ export async function GET(req: NextRequest) {
   const now = Date.now();
   const summary = { expired: 0, warnings: 0, followups: 0, expiredNotices: 0, emailEnabled: emailConfigured() };
 
-  for (const original of listTokens()) {
+  for (const original of await listTokens()) {
     if (original.status === "revoked") continue;
 
     let t = { ...original }; // copia mutable — evita pisar campos al guardar dos veces en el mismo ciclo
-    const tester = getTester(t.testerId);
+    const tester = await getTester(t.testerId);
     const name   = projectName(t.projectId);
 
     // 1. Expirar tokens vencidos
     if (t.status === "active" && t.expiresAt && new Date(t.expiresAt).getTime() < now) {
       t = { ...t, status: "expired" };
-      saveToken(t);
+      await saveToken(t);
       summary.expired++;
 
       if (tester && !t.expiredEmailSentAt && emailConfigured()) {
         const sent = await sendExpiredEmail(tester.email, name);
         if (sent) {
           t = { ...t, expiredEmailSentAt: new Date().toISOString() };
-          saveToken(t);
+          await saveToken(t);
           summary.expiredNotices++;
         }
       }
@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
       const sent = await sendWarningEmail(tester.email, name, daysLeft, t.token);
       if (sent) {
         t = { ...t, warningEmailSentAt: new Date().toISOString() };
-        saveToken(t);
+        await saveToken(t);
         summary.warnings++;
       }
     }
@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
       const sent = await sendFollowupEmail(tester.email, name, t.token);
       if (sent) {
         t = { ...t, followupEmailSentAt: new Date().toISOString() };
-        saveToken(t);
+        await saveToken(t);
         summary.followups++;
       }
     }

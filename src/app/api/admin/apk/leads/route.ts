@@ -18,11 +18,11 @@ export async function GET(req: NextRequest) {
   }
 
   const projectId = req.nextUrl.searchParams.get("projectId") ?? undefined;
-  const tokens    = listTokens(projectId);
+  const tokens    = await listTokens(projectId);
 
   // Return enriched with tester info for backwards compatibility
-  const enriched = tokens.map((t) => {
-    const tester = getTester(t.testerId);
+  const enriched = await Promise.all(tokens.map(async (t) => {
+    const tester = await getTester(t.testerId);
     return {
       id:          t.token,
       projectId:   t.projectId,
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
       status:      t.status,
       requestedAt: t.createdAt,
     };
-  });
+  }));
 
   return NextResponse.json(enriched);
 }

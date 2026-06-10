@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Tope diario global — protege el presupuesto de la cuenta
-    if (getDailyTokens(CHAT_PROJECT_ID) >= DAILY_TOKEN_CAP) {
+    if ((await getDailyTokens(CHAT_PROJECT_ID)) >= DAILY_TOKEN_CAP) {
       return NextResponse.json({ reply: DEMO_REPLY, mode: 'demo' });
     }
 
@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
     const reply: string = data?.content?.[0]?.text ?? 'respuesta no disponible.';
 
     // Cost Governor: el chat público también se contabiliza
-    recordUsage({
+    await recordUsage({
       projectId:    CHAT_PROJECT_ID,
       agent:        'chat',
       model:        'claude-sonnet-4-6',
