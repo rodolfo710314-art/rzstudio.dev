@@ -45,7 +45,7 @@ export default function BlogPage() {
     <main className="pt-32 pb-20 bg-transparent text-white">
       <section className="container mx-auto px-6">
         <div className="max-w-3xl mb-20">
-          <div className="font-mono text-[9px] text-slate-500 mb-4 tracking-widest uppercase">// rz_engineering_logs</div>
+          <div className="font-mono text-[11px] text-slate-500 mb-4 tracking-widest uppercase">// rz_engineering_logs</div>
           <h1 className="text-4xl md:text-6xl font-bold uppercase tracking-tight text-white mb-6 font-sans">
             últimas <span className="text-copper">publicaciones_</span>
           </h1>
@@ -69,7 +69,7 @@ export default function BlogPage() {
             </div>
 
             <div className="flex-1 flex flex-col justify-center py-6">
-              <span className="text-copper text-[10px] tracking-widest font-bold uppercase mb-4 block font-mono">// destacado</span>
+              <span className="text-copper text-[12px] tracking-widest font-bold uppercase mb-4 block font-mono">// destacado</span>
               <h2 className="text-2xl md:text-4xl font-bold text-white mb-6 leading-tight uppercase font-sans">
                 {POSTS[0].title}
               </h2>
@@ -105,7 +105,7 @@ export default function BlogPage() {
               </div>
               <p className="text-slate-400 text-sm mb-6 flex-1 font-sans font-light leading-relaxed">{post.excerpt}</p>
               <div className="flex items-center justify-between mt-auto border-t border-slate-800/40 pt-4">
-                <span className="text-[9px] border border-slate-800 text-slate-400 px-2 py-0.5 uppercase font-bold">[{post.category}]</span>
+                <span className="text-[11px] border border-slate-800 text-slate-400 px-2 py-0.5 uppercase font-bold">[{post.category}]</span>
                 <Link href={`/blog/${post.id}`} aria-label={`leer ${post.title}`} className="text-copper hover:text-white transition-all duration-300">
                   <ArrowRight size={16} strokeWidth={1} />
                 </Link>

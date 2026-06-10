@@ -17,7 +17,7 @@ export function Footer() {
             <span className="w-1.5 h-1.5 bg-copper animate-pulse rounded-none" />
             rz_core_diagnostics
           </div>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[10px] text-slate-500">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px] text-slate-500">
             <div>[hardware_tier]: <span className="text-slate-300 font-bold">{tier}</span></div>
             <div>[animation_complexity]: <span className="text-slate-300">{config.animationComplexity}</span></div>
             <div>[particle_density]: <span className="text-slate-300">{config.particleCount}u</span></div>
@@ -25,7 +25,7 @@ export function Footer() {
             <div>[system_engine]: <span className="text-slate-300">v14.2.6-stable</span></div>
             <div>[connection_state]: <span className="text-emerald-500">established</span></div>
           </div>
-          <p className="text-[10px] text-slate-600 mt-4 leading-relaxed max-w-sm">
+          <p className="text-[12px] text-slate-500 mt-4 leading-relaxed max-w-sm">
             rzstudio es una terminal interactiva de ingeniería de software aumentada por modelos multimodales cooperativos.
           </p>
         </div>
@@ -62,10 +62,10 @@ export function Footer() {
             <li><Link href="/legal/privacidad" className="hover:text-copper transition-colors">// aviso de privacidad</Link></li>
             <li><Link href="/legal/terminos" className="hover:text-copper transition-colors">// términos beta</Link></li>
             <li>
-              <span className="text-slate-600">© {new Date().getFullYear()} rzstudio //</span>
+              <span className="text-slate-500">© {new Date().getFullYear()} rzstudio //</span>
             </li>
             <li>
-              <span className="text-slate-600">[hecho con simbiosis humana-ia]</span>
+              <span className="text-slate-500">[hecho con simbiosis humana-ia]</span>
             </li>
           </ul>
         </div>

@@ -34,10 +34,11 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-transparent text-white">
+        <a href="#contenido" className="skip-link">saltar al contenido_</a>
         <HardwareProvider>
           <NeuralNetwork />
           <Navbar />
-          <div className="flex-1">
+          <div id="contenido" className="flex-1">
             {children}
           </div>
           <Footer />

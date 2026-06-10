@@ -123,7 +123,7 @@ export function SmartChatbot() {
                   <h3 className="text-white font-bold text-xs font-mono tracking-wider">rz_assistant</h3>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="w-1.5 h-1.5 bg-copper rounded-none animate-pulse" aria-hidden="true" />
-                    <span className="text-[9px] text-slate-500 uppercase tracking-widest font-mono">sistema: activo</span>
+                    <span className="text-[11px] text-slate-500 uppercase tracking-widest font-mono">sistema: activo</span>
                   </div>
                 </div>
               </div>
@@ -145,7 +145,7 @@ export function SmartChatbot() {
             >
               {messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] p-3 text-[11px] font-mono leading-relaxed border ${
+                  <div className={`max-w-[85%] p-3 text-[13px] font-mono leading-relaxed border ${
                     msg.sender === 'user'
                       ? 'bg-[#0c0806] border-copper/35 text-white'
                       : error && msg === messages[messages.length - 1] && msg.sender === 'ai'

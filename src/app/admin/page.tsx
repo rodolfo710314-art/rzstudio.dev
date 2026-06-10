@@ -15,7 +15,7 @@ export default function AdminLoginPage() {
         {/* Header */}
         <div className="border-b border-[#1D140F] px-6 py-4 flex items-center gap-3">
           <span className="w-2 h-2 bg-[#C97352]" />
-          <span className="text-[10px] uppercase tracking-widest text-[#C97352] font-mono">
+          <span className="text-[12px] uppercase tracking-widest text-[#C97352] font-mono">
             rzstudio // admin
           </span>
         </div>
@@ -24,7 +24,7 @@ export default function AdminLoginPage() {
           <div className="space-y-1">
             <label
               htmlFor="admin-password"
-              className="block text-[10px] uppercase tracking-widest text-slate-400 font-mono"
+              className="block text-[12px] uppercase tracking-widest text-slate-400 font-mono"
             >
               contraseña de acceso
             </label>
@@ -38,10 +38,10 @@ export default function AdminLoginPage() {
               autoCapitalize="off"
               spellCheck={false}
               className="w-full bg-[#111111] border border-[#333] px-3 py-2 text-sm font-mono text-white
-                         focus:outline-none focus:border-[#C97352] transition-colors placeholder:text-slate-600"
+                         focus:outline-none focus:border-[#C97352] transition-colors placeholder:text-slate-500"
               placeholder="ingresa la contraseña"
             />
-            <p className="text-[9px] text-slate-700 font-mono lowercase">
+            <p className="text-[11px] text-slate-500 font-mono lowercase">
               campo en texto plano para evitar bloqueo de IME en linux
             </p>
           </div>
@@ -63,7 +63,7 @@ export default function AdminLoginPage() {
         </form>
 
         <div className="border-t border-[#1D140F] px-6 py-3">
-          <p className="text-[10px] text-slate-700 font-mono lowercase">
+          <p className="text-[12px] text-slate-500 font-mono lowercase">
             acceso restringido. solo personal autorizado.
           </p>
         </div>

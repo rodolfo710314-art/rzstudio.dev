@@ -77,10 +77,10 @@ export function SimbiosisShell() {
             transition={{ duration: 0.18 }}
           >
             <div className="mb-6">
-              <span className="font-mono text-[10px] text-copper uppercase tracking-widest block mb-1" aria-hidden="true">
+              <span className="font-mono text-[12px] text-copper uppercase tracking-widest block mb-1" aria-hidden="true">
                 // sandbox interactivo beta
               </span>
-              <p className="font-mono text-xs text-slate-700 lowercase">
+              <p className="font-mono text-xs text-slate-500 lowercase">
                 tarjeta cero + 6 proyectos de ia en ejecución. selecciona un proyecto para abrir su expediente.
               </p>
             </div>

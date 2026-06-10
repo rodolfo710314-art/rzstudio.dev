@@ -13,13 +13,13 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
           {children}
 
           <div className="mt-16 border-t border-slate-800 pt-6 flex flex-wrap gap-6">
-            <Link href="/legal/privacidad" className="font-mono text-[11px] text-slate-500 hover:text-copper transition-colors lowercase">
+            <Link href="/legal/privacidad" className="font-mono text-[13px] text-slate-500 hover:text-copper transition-colors lowercase">
               aviso de privacidad
             </Link>
-            <Link href="/legal/terminos" className="font-mono text-[11px] text-slate-500 hover:text-copper transition-colors lowercase">
+            <Link href="/legal/terminos" className="font-mono text-[13px] text-slate-500 hover:text-copper transition-colors lowercase">
               términos del programa beta
             </Link>
-            <Link href="/" className="font-mono text-[11px] text-slate-600 hover:text-slate-400 transition-colors lowercase ml-auto">
+            <Link href="/" className="font-mono text-[13px] text-slate-500 hover:text-slate-400 transition-colors lowercase ml-auto">
               ← volver al inicio
             </Link>
           </div>

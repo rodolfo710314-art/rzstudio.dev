@@ -26,7 +26,7 @@ export function PortfolioContent() {
     <section className="container mx-auto px-6 font-mono text-xs lowercase">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-16">
         <div className="max-w-2xl font-sans">
-          <div className="font-mono text-[9px] text-slate-500 mb-4 tracking-widest uppercase">// portfolio_projects</div>
+          <div className="font-mono text-[11px] text-slate-500 mb-4 tracking-widest uppercase">// portfolio_projects</div>
           <h1 className="text-6xl font-sans font-light tracking-tight glow-title-strong mb-6">
             NUESTROS <br/> PROYECTOS_
           </h1>
@@ -40,7 +40,7 @@ export function PortfolioContent() {
                 key={cat} 
                 onClick={() => setFilter(cat)} 
                 className={`
-                  px-5 py-2 border text-[11px] tracking-wider transition-all duration-300
+                  px-5 py-2 border text-[13px] tracking-wider transition-all duration-300
                   ${isActive 
                     ? 'bg-transparent text-white border-copper shadow-[0_0_8px_rgba(201,115,82,0.2)]' 
                     : 'bg-transparent text-slate-500 border-slate-800 hover:text-slate-300 hover:border-slate-700'}
@@ -61,9 +61,9 @@ export function PortfolioContent() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="col-span-full py-20 text-center font-mono text-xs text-slate-600"
+              className="col-span-full py-20 text-center font-mono text-xs text-slate-500"
             >
-              <span className="block mb-2 text-slate-700 text-lg">{'[ 0 resultados ]'}</span>
+              <span className="block mb-2 text-slate-500 text-lg">{'[ 0 resultados ]'}</span>
               // no hay proyectos en esta categoría todavía.
             </motion.div>
           )}
@@ -78,7 +78,7 @@ export function PortfolioContent() {
             >
               <SmartCard title={proyecto.title.toUpperCase()} className="h-full flex flex-col group cursor-pointer font-sans">
                 <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-3 font-mono text-xs lowercase">
-                  <span className="px-2 py-0.5 border border-copper/30 bg-transparent text-copper text-[9px] font-bold">
+                  <span className="px-2 py-0.5 border border-copper/30 bg-transparent text-copper text-[11px] font-bold">
                     [{proyecto.category.toLowerCase()}]
                   </span>
                   <span className="text-white font-bold text-sm tracking-tight">{proyecto.metric.toLowerCase()}</span>
@@ -88,7 +88,7 @@ export function PortfolioContent() {
                 {/* tags */}
                 <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-slate-800/40 mb-6 font-mono text-xs lowercase">
                   {proyecto.tags.map((tag) => (
-                    <span key={tag} className="text-[9px] text-slate-500">[{tag.toLowerCase()}]</span>
+                    <span key={tag} className="text-[11px] text-slate-500">[{tag.toLowerCase()}]</span>
                   ))}
                 </div>
 

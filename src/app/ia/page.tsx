@@ -23,7 +23,7 @@ export default function IAPage() {
 
         {/* HEADER */}
         <div className="max-w-3xl mb-20">
-          <span className="font-mono text-[10px] text-copper uppercase tracking-widest block mb-2">
+          <span className="font-mono text-[12px] text-copper uppercase tracking-widest block mb-2">
             // inteligencia_adaptativa
           </span>
           <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight uppercase leading-none mb-6 font-sans">
@@ -38,7 +38,7 @@ export default function IAPage() {
 
         {/* ROI CALCULATOR */}
         <div className="mb-24">
-          <span className="font-mono text-[10px] text-copper uppercase tracking-widest block mb-6">
+          <span className="font-mono text-[12px] text-copper uppercase tracking-widest block mb-6">
             // calculadora de impacto
           </span>
           <ROICalculator />
@@ -46,7 +46,7 @@ export default function IAPage() {
 
         {/* COMPARATIVO METODOLOGÍAS */}
         <div className="mb-24">
-          <span className="font-mono text-[10px] text-copper uppercase tracking-widest block mb-6">
+          <span className="font-mono text-[12px] text-copper uppercase tracking-widest block mb-6">
             // comparativo de metodologías
           </span>
           <TraditionalVsAI />
@@ -54,7 +54,7 @@ export default function IAPage() {
 
         {/* TECH STACK */}
         <div>
-          <span className="font-mono text-[10px] text-copper uppercase tracking-widest block mb-6">
+          <span className="font-mono text-[12px] text-copper uppercase tracking-widest block mb-6">
             // stack tecnológico
           </span>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -67,7 +67,7 @@ export default function IAPage() {
                   {item.icon}
                 </div>
                 <h3 className="text-white font-bold mb-2 font-mono text-xs uppercase tracking-wider">{item.title}</h3>
-                <p className="text-slate-500 text-[10px] font-mono">{item.desc}</p>
+                <p className="text-slate-500 text-[12px] font-mono">{item.desc}</p>
               </div>
             ))}
           </div>

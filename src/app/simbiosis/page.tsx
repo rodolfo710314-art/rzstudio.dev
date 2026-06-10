@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 function Skeleton() {
   return (
     <div className="min-h-[50vh] flex items-center justify-center">
-      <span className="font-mono text-[10px] text-slate-500 uppercase tracking-widest animate-pulse">
+      <span className="font-mono text-[12px] text-slate-500 uppercase tracking-widest animate-pulse">
         {'> iniciando núcleo simbiótico...'}
       </span>
     </div>
@@ -25,7 +25,7 @@ export default function SimbiosisPage() {
         <div className="container mx-auto px-6">
           {/* Section header */}
           <div className="mb-12">
-            <span className="font-mono text-[10px] text-copper uppercase tracking-widest block mb-2">
+            <span className="font-mono text-[12px] text-copper uppercase tracking-widest block mb-2">
               // laboratorio de i+d interactivo
             </span>
             <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight uppercase leading-none">

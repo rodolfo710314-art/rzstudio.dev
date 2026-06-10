@@ -19,7 +19,7 @@ export default function EstrellaPage() {
 
         {/* INTRODUCCIÓN: EL MENSAJE FUNDACIONAL */}
         <div className="max-w-4xl mx-auto text-center mb-32">
-          <div className="inline-flex items-center gap-2 px-3 py-1 border border-slate-800 bg-[#020202] text-copper text-[9px] font-mono uppercase tracking-[0.25em] mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 border border-slate-800 bg-[#020202] text-copper text-[11px] font-mono uppercase tracking-[0.25em] mb-8">
             [manifesto: simbiosis_humano_ia]
           </div>
           <h1 className="text-2xl md:text-4xl font-normal text-slate-200 leading-tight font-sans">
@@ -44,11 +44,11 @@ export default function EstrellaPage() {
             </div>
             <div className="p-8 border border-slate-800 bg-[#020202] rounded-none">
                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-6 bg-[#050505] border border-slate-800 text-center font-mono text-[10px] lowercase">
+                  <div className="p-6 bg-[#050505] border border-slate-800 text-center font-mono text-[12px] lowercase">
                      <Users className="mx-auto mb-3 text-copper" strokeWidth={1} />
                      <p className="font-bold text-slate-400">[visión humana]</p>
                   </div>
-                  <div className="p-6 bg-[#050505] border border-slate-800 text-center font-mono text-[10px] lowercase">
+                  <div className="p-6 bg-[#050505] border border-slate-800 text-center font-mono text-[12px] lowercase">
                      <Cpu className="mx-auto mb-3 text-roast" strokeWidth={1} />
                      <p className="font-bold text-slate-400">[potencia ia]</p>
                   </div>
@@ -112,7 +112,7 @@ export default function EstrellaPage() {
         </div>
 
         {/* PIE DE PÁGINA DEL MANIFIESTO */}
-        <div className="mt-40 text-center text-slate-600 text-[10px] font-mono lowercase">
+        <div className="mt-40 text-center text-slate-500 text-[12px] font-mono lowercase">
            <p>// construido con orgullo humano e inteligencia artificial multimodal • rzstudio 2026</p>
         </div>
 

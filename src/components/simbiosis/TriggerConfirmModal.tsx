@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface TriggerConfirmModalProps {
   open:      boolean;
@@ -18,6 +19,7 @@ const COUNTDOWN_SECONDS = 5;
 
 export function TriggerConfirmModal({ open, action, projectName, onConfirm, onCancel }: TriggerConfirmModalProps) {
   const [remaining, setRemaining] = useState(COUNTDOWN_SECONDS);
+  const trapRef = useFocusTrap<HTMLDivElement>(open);
 
   useEffect(() => {
     if (!open) return;
@@ -41,6 +43,7 @@ export function TriggerConfirmModal({ open, action, projectName, onConfirm, onCa
             aria-hidden="true"
           />
           <motion.div
+            ref={trapRef}
             role="alertdialog"
             aria-modal="true"
             aria-label={`confirmar ${isMerge ? 'merge' : 'purga'}`}
@@ -51,11 +54,11 @@ export function TriggerConfirmModal({ open, action, projectName, onConfirm, onCa
             className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[351]
                        w-full max-w-sm bg-zinc-950 border border-slate-800 p-6"
           >
-            <span className={`font-mono text-[8px] uppercase tracking-widest block mb-1 ${isMerge ? 'text-copper' : 'text-red-500/70'}`}>
+            <span className={`font-mono text-[10px] uppercase tracking-widest block mb-1 ${isMerge ? 'text-copper' : 'text-red-500/70'}`}>
               // confirmación de {isMerge ? 'merge a producción' : 'purga de entorno'}
             </span>
             <p className="font-mono text-xs text-white lowercase mb-1">{projectName}</p>
-            <p className="font-mono text-[10px] text-slate-600 lowercase leading-relaxed mb-5">
+            <p className="font-mono text-[12px] text-slate-500 lowercase leading-relaxed mb-5">
               {isMerge
                 ? 'el código pasará por el juez de hierro y, si aprueba, se fusionará a la rama principal. esta acción queda en acta.'
                 : 'la rama temporal será destruida y los cambios descartados de forma permanente. esta acción queda en acta.'}
@@ -65,7 +68,7 @@ export function TriggerConfirmModal({ open, action, projectName, onConfirm, onCa
               <button
                 onClick={onConfirm}
                 disabled={remaining > 0}
-                className={`flex-1 font-mono text-[9px] uppercase tracking-widest py-2.5 transition-colors disabled:cursor-not-allowed
+                className={`flex-1 font-mono text-[11px] uppercase tracking-widest py-2.5 transition-colors disabled:cursor-not-allowed
                   ${isMerge
                     ? 'bg-copper text-black hover:bg-amber-600 disabled:opacity-40'
                     : 'border border-red-900/50 text-red-400 hover:bg-red-950/30 disabled:opacity-40'}`}
@@ -74,7 +77,7 @@ export function TriggerConfirmModal({ open, action, projectName, onConfirm, onCa
               </button>
               <button
                 onClick={onCancel}
-                className="font-mono text-[9px] uppercase tracking-widest text-slate-600 hover:text-slate-300 px-3 transition-colors"
+                className="font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-slate-300 px-3 transition-colors"
               >
                 cancelar
               </button>

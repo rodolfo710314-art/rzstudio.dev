@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, Cpu, Shield, GitBranch, Search, GitPullRequest, TrendingDown, Activity, AlertTriangle, Smartphone, Layers, Package, Zap, Database, Gauge, FileText, Network, ShieldCheck, RotateCcw, Brain, LayoutGrid, Eye } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Project } from './data';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 const ICONS: Record<string, LucideIcon> = {
   Cpu, Shield, GitBranch, Search, GitPullRequest, TrendingDown, Activity,
@@ -37,6 +38,7 @@ export function ProjectShowcase({ project, onClose, onSandbox, onAndroid }: Proj
   const [data, setData]       = useState<ShowcaseData | null>(null);
   const [loading, setLoading] = useState(true);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const trapRef  = useFocusTrap<HTMLDivElement>(!!project);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
@@ -77,6 +79,7 @@ export function ProjectShowcase({ project, onClose, onSandbox, onAndroid }: Proj
 
           <motion.div
             key="sc-modal"
+            ref={trapRef}
             role="dialog" aria-modal="true"
             aria-label={`expediente del proyecto: ${project.name}`}
             initial={{ opacity: 0, scale: 0.98, y: 8 }}
@@ -89,18 +92,18 @@ export function ProjectShowcase({ project, onClose, onSandbox, onAndroid }: Proj
             {/* Header */}
             <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-slate-800/60 flex-shrink-0">
               <div>
-                <span className="font-mono text-[8px] text-copper uppercase tracking-widest block mb-0.5" aria-hidden="true">
+                <span className="font-mono text-[10px] text-copper uppercase tracking-widest block mb-0.5" aria-hidden="true">
                   // expediente del proyecto [{project.id}]
                 </span>
                 <h3 className="font-mono text-base text-white lowercase leading-tight">{project.name}</h3>
                 {data && (
-                  <p className="font-mono text-[11px] text-copper/80 lowercase mt-1">{data.tagline}</p>
+                  <p className="font-mono text-[13px] text-copper/80 lowercase mt-1">{data.tagline}</p>
                 )}
               </div>
               <button
                 ref={closeRef}
                 onClick={onClose}
-                className="text-slate-700 hover:text-slate-300 transition-colors mt-0.5"
+                className="text-slate-500 hover:text-slate-300 transition-colors mt-0.5"
                 aria-label="cerrar expediente"
               >
                 <X className="w-4 h-4" />
@@ -110,11 +113,11 @@ export function ProjectShowcase({ project, onClose, onSandbox, onAndroid }: Proj
             {/* Body */}
             <div className="flex-1 overflow-y-auto">
               {loading ? (
-                <p className="p-6 font-mono text-xs text-slate-600 lowercase animate-pulse">
+                <p className="p-6 font-mono text-xs text-slate-500 lowercase animate-pulse">
                   {'>'} cargando manifiesto del proyecto...
                 </p>
               ) : !data ? (
-                <p className="p-6 font-mono text-xs text-slate-600 lowercase">
+                <p className="p-6 font-mono text-xs text-slate-500 lowercase">
                   {'>'} este proyecto aún no tiene manifiesto público.
                 </p>
               ) : (
@@ -122,23 +125,23 @@ export function ProjectShowcase({ project, onClose, onSandbox, onAndroid }: Proj
                   {/* Izquierda: descripción + beneficios */}
                   <div className="p-6 space-y-6">
                     <div>
-                      <span className="font-mono text-[8px] text-slate-700 uppercase tracking-widest block mb-2">
+                      <span className="font-mono text-[10px] text-slate-500 uppercase tracking-widest block mb-2">
                         // qué es
                       </span>
-                      <p className="font-mono text-[11px] text-slate-400 lowercase leading-relaxed">
+                      <p className="font-mono text-[13px] text-slate-400 lowercase leading-relaxed">
                         {data.description}
                       </p>
                     </div>
 
                     <div>
-                      <span className="font-mono text-[8px] text-slate-700 uppercase tracking-widest block mb-3">
+                      <span className="font-mono text-[10px] text-slate-500 uppercase tracking-widest block mb-3">
                         // beneficios
                       </span>
                       <div className="space-y-2">
                         {data.benefits.map((b, i) => (
                           <div key={i} className="flex items-start gap-2.5">
                             <Check className="w-3 h-3 text-emerald-500/80 mt-0.5 shrink-0" strokeWidth={2} aria-hidden="true" />
-                            <span className="font-mono text-[10px] text-slate-500 lowercase leading-relaxed">{b}</span>
+                            <span className="font-mono text-[12px] text-slate-500 lowercase leading-relaxed">{b}</span>
                           </div>
                         ))}
                       </div>
@@ -148,7 +151,7 @@ export function ProjectShowcase({ project, onClose, onSandbox, onAndroid }: Proj
                   {/* Derecha: features + cómo usarlo */}
                   <div className="p-6 space-y-6 border-t md:border-t-0 border-slate-800/60">
                     <div>
-                      <span className="font-mono text-[8px] text-slate-700 uppercase tracking-widest block mb-3">
+                      <span className="font-mono text-[10px] text-slate-500 uppercase tracking-widest block mb-3">
                         // capacidades
                       </span>
                       <div className="space-y-3">
@@ -158,8 +161,8 @@ export function ProjectShowcase({ project, onClose, onSandbox, onAndroid }: Proj
                             <div key={i} className="flex items-start gap-3 border border-slate-800/60 p-3 bg-black/20">
                               <Icon className="w-3.5 h-3.5 text-copper mt-0.5 shrink-0" strokeWidth={1.5} aria-hidden="true" />
                               <div>
-                                <div className="font-mono text-[10px] text-white lowercase">{f.title}</div>
-                                <div className="font-mono text-[9px] text-slate-600 lowercase leading-relaxed">{f.detail}</div>
+                                <div className="font-mono text-[12px] text-white lowercase">{f.title}</div>
+                                <div className="font-mono text-[11px] text-slate-500 lowercase leading-relaxed">{f.detail}</div>
                               </div>
                             </div>
                           );
@@ -168,18 +171,18 @@ export function ProjectShowcase({ project, onClose, onSandbox, onAndroid }: Proj
                     </div>
 
                     <div>
-                      <span className="font-mono text-[8px] text-slate-700 uppercase tracking-widest block mb-3">
+                      <span className="font-mono text-[10px] text-slate-500 uppercase tracking-widest block mb-3">
                         // cómo probarlo
                       </span>
                       <div className="space-y-2.5">
                         {data.how_to_use.map((s) => (
                           <div key={s.step} className="flex items-start gap-3">
-                            <span className="font-mono text-[9px] text-copper border border-slate-800 w-5 h-5 flex items-center justify-center shrink-0">
+                            <span className="font-mono text-[11px] text-copper border border-slate-800 w-5 h-5 flex items-center justify-center shrink-0">
                               {s.step}
                             </span>
                             <div>
-                              <div className="font-mono text-[10px] text-slate-300 lowercase">{s.title}</div>
-                              <div className="font-mono text-[9px] text-slate-600 lowercase leading-relaxed">{s.description}</div>
+                              <div className="font-mono text-[12px] text-slate-300 lowercase">{s.title}</div>
+                              <div className="font-mono text-[11px] text-slate-500 lowercase leading-relaxed">{s.description}</div>
                             </div>
                           </div>
                         ))}
@@ -195,7 +198,7 @@ export function ProjectShowcase({ project, onClose, onSandbox, onAndroid }: Proj
               {showWeb && (
                 <button
                   onClick={() => onSandbox(project)}
-                  className="flex-1 font-mono text-[9px] uppercase tracking-widest border border-slate-700 text-slate-300 py-2.5
+                  className="flex-1 font-mono text-[11px] uppercase tracking-widest border border-slate-700 text-slate-300 py-2.5
                              hover:border-copper hover:text-copper transition-colors"
                 >
                   iniciar entorno de prueba
@@ -204,7 +207,7 @@ export function ProjectShowcase({ project, onClose, onSandbox, onAndroid }: Proj
               {showAndroid && (
                 <button
                   onClick={() => onAndroid(project)}
-                  className="flex-1 font-mono text-[9px] uppercase tracking-widest border border-emerald-900 text-emerald-500 py-2.5
+                  className="flex-1 font-mono text-[11px] uppercase tracking-widest border border-emerald-900 text-emerald-500 py-2.5
                              hover:bg-emerald-950/40 transition-colors"
                 >
                   obtener binario seguro

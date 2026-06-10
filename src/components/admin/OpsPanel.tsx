@@ -83,13 +83,13 @@ export function OpsPanel() {
     <div className="border border-[#1D140F]">
       {/* Header */}
       <div className="border-b border-[#1D140F] px-5 py-3 flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-widest font-mono text-slate-400">
+        <span className="text-[12px] uppercase tracking-widest font-mono text-slate-400">
           operaciones — núcleo simbiótico
         </span>
         <button
           onClick={refresh}
           disabled={loading}
-          className="text-[9px] uppercase tracking-widest font-mono text-slate-600 hover:text-[#C97352] transition-colors disabled:opacity-40"
+          className="text-[11px] uppercase tracking-widest font-mono text-slate-500 hover:text-[#C97352] transition-colors disabled:opacity-40"
         >
           {loading ? "cargando..." : "↺ refrescar"}
         </button>
@@ -97,13 +97,13 @@ export function OpsPanel() {
 
       {!data ? (
         <div className="p-5">
-          <p className="text-xs font-mono text-slate-600 lowercase animate-pulse">consultando estado operativo...</p>
+          <p className="text-xs font-mono text-slate-500 lowercase animate-pulse">consultando estado operativo...</p>
         </div>
       ) : (
         <div className="divide-y divide-[#1D140F]">
           {/* Integraciones */}
           <div className="p-5">
-            <span className="text-[9px] uppercase tracking-widest font-mono text-slate-600 block mb-3">
+            <span className="text-[11px] uppercase tracking-widest font-mono text-slate-500 block mb-3">
               // integraciones
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -116,9 +116,9 @@ export function OpsPanel() {
                       style={active ? { boxShadow: "0 0 5px rgba(52,211,153,0.6)" } : undefined}
                     />
                     <div className="min-w-0">
-                      <div className="text-[10px] font-mono text-white lowercase">{meta?.name ?? key}</div>
+                      <div className="text-[12px] font-mono text-white lowercase">{meta?.name ?? key}</div>
                       {!active && (
-                        <div className="text-[8px] font-mono text-slate-700 lowercase truncate">{meta?.hint}</div>
+                        <div className="text-[10px] font-mono text-slate-500 lowercase truncate">{meta?.hint}</div>
                       )}
                     </div>
                   </div>
@@ -129,23 +129,23 @@ export function OpsPanel() {
 
           {/* Cost Governor */}
           <div className="p-5">
-            <span className="text-[9px] uppercase tracking-widest font-mono text-slate-600 block mb-3">
+            <span className="text-[11px] uppercase tracking-widest font-mono text-slate-500 block mb-3">
               // cost governor — consumo del mes
             </span>
             {data.usage.length === 0 ? (
-              <p className="text-[10px] font-mono text-slate-700 lowercase">sin consumo registrado este mes</p>
+              <p className="text-[12px] font-mono text-slate-500 lowercase">sin consumo registrado este mes</p>
             ) : (
               <div className="space-y-2">
                 {data.usage.map((u) => (
                   <div key={u.projectId} className="flex items-center gap-3">
-                    <span className="text-[9px] font-mono text-slate-500 w-10 shrink-0">[{u.projectId}]</span>
+                    <span className="text-[11px] font-mono text-slate-500 w-10 shrink-0">[{u.projectId}]</span>
                     <div className="flex-1 h-1.5 bg-[#111] border border-[#1D140F]">
                       <div
                         className={`h-full ${u.alert ? "bg-red-500" : "bg-[#C97352]"}`}
                         style={{ width: `${Math.min(100, u.pctUsed ?? 0)}%` }}
                       />
                     </div>
-                    <span className={`text-[9px] font-mono w-32 text-right ${u.alert ? "text-red-400" : "text-slate-400"}`}>
+                    <span className={`text-[11px] font-mono w-32 text-right ${u.alert ? "text-red-400" : "text-slate-400"}`}>
                       {u.totalTokens.toLocaleString()}{u.budgetMonthly ? ` / ${u.budgetMonthly.toLocaleString()}` : ""} tk
                     </span>
                   </div>
@@ -156,11 +156,11 @@ export function OpsPanel() {
 
           {/* Actas */}
           <div className="p-5">
-            <span className="text-[9px] uppercase tracking-widest font-mono text-slate-600 block mb-3">
+            <span className="text-[11px] uppercase tracking-widest font-mono text-slate-500 block mb-3">
               // actas de simbiosis — historial del war room
             </span>
             {data.actas.length === 0 ? (
-              <p className="text-[10px] font-mono text-slate-700 lowercase">sin sesiones documentadas aún</p>
+              <p className="text-[12px] font-mono text-slate-500 lowercase">sin sesiones documentadas aún</p>
             ) : (
               <div className="space-y-1">
                 {data.actas.map((a) => (
@@ -169,15 +169,15 @@ export function OpsPanel() {
                     onClick={() => openActa(a.id)}
                     className="w-full flex items-center gap-3 text-left px-2 py-1.5 hover:bg-white/[0.02] transition-colors"
                   >
-                    <span className="text-[9px] font-mono text-slate-600">[{a.projectId}]</span>
-                    <span className={`text-[9px] font-mono uppercase ${RESOLUTION_COLOR[a.resolution] ?? "text-slate-500"}`}>
+                    <span className="text-[11px] font-mono text-slate-500">[{a.projectId}]</span>
+                    <span className={`text-[11px] font-mono uppercase ${RESOLUTION_COLOR[a.resolution] ?? "text-slate-500"}`}>
                       {a.resolution}
                     </span>
-                    <span className="text-[9px] font-mono text-slate-700">{a.triggerUsed ?? "—"}</span>
-                    <span className="text-[9px] font-mono text-slate-700 ml-auto">
+                    <span className="text-[11px] font-mono text-slate-500">{a.triggerUsed ?? "—"}</span>
+                    <span className="text-[11px] font-mono text-slate-500 ml-auto">
                       {new Date(a.createdAt).toLocaleString("es-MX")}
                     </span>
-                    <span className="text-[9px] font-mono text-slate-600">{a.id} →</span>
+                    <span className="text-[11px] font-mono text-slate-500">{a.id} →</span>
                   </button>
                 ))}
               </div>
@@ -186,26 +186,26 @@ export function OpsPanel() {
 
           {/* Prospectos del formulario de contacto */}
           <div className="p-5">
-            <span className="text-[9px] uppercase tracking-widest font-mono text-slate-600 block mb-3">
+            <span className="text-[11px] uppercase tracking-widest font-mono text-slate-500 block mb-3">
               // prospectos — formulario de contacto
             </span>
             {!data.contactLeads || data.contactLeads.length === 0 ? (
-              <p className="text-[10px] font-mono text-slate-700 lowercase">sin mensajes recibidos aún</p>
+              <p className="text-[12px] font-mono text-slate-500 lowercase">sin mensajes recibidos aún</p>
             ) : (
               <div className="space-y-3">
                 {data.contactLeads.map((l) => (
                   <div key={l.id} className="border-l border-[#1D140F] pl-3">
                     <div className="flex items-center gap-3 flex-wrap">
-                      <span className="text-[10px] font-mono text-white lowercase">{l.nombre}</span>
-                      <a href={`mailto:${l.email}`} className="text-[10px] font-mono text-[#C97352] hover:underline">{l.email}</a>
-                      <span className={`text-[9px] font-mono ${l.emailed ? "text-emerald-400" : "text-amber-400"}`}>
+                      <span className="text-[12px] font-mono text-white lowercase">{l.nombre}</span>
+                      <a href={`mailto:${l.email}`} className="text-[12px] font-mono text-[#C97352] hover:underline">{l.email}</a>
+                      <span className={`text-[11px] font-mono ${l.emailed ? "text-emerald-400" : "text-amber-400"}`}>
                         {l.emailed ? "✓ reenviado por correo" : "⚠ solo guardado (resend inactivo)"}
                       </span>
-                      <span className="text-[9px] font-mono text-slate-700 ml-auto">
+                      <span className="text-[11px] font-mono text-slate-500 ml-auto">
                         {new Date(l.createdAt).toLocaleString("es-MX")}
                       </span>
                     </div>
-                    <p className="text-[10px] font-mono text-slate-500 lowercase leading-relaxed mt-1">{l.mensaje}</p>
+                    <p className="text-[12px] font-mono text-slate-500 lowercase leading-relaxed mt-1">{l.mensaje}</p>
                   </div>
                 ))}
               </div>
@@ -214,26 +214,26 @@ export function OpsPanel() {
 
           {/* Juez de Hierro */}
           <div className="p-5">
-            <span className="text-[9px] uppercase tracking-widest font-mono text-slate-600 block mb-3">
+            <span className="text-[11px] uppercase tracking-widest font-mono text-slate-500 block mb-3">
               // log del juez de hierro
             </span>
             {data.judgeLog.length === 0 ? (
-              <p className="text-[10px] font-mono text-slate-700 lowercase">sin evaluaciones registradas</p>
+              <p className="text-[12px] font-mono text-slate-500 lowercase">sin evaluaciones registradas</p>
             ) : (
               <div className="space-y-2">
                 {data.judgeLog.map((j, i) => (
                   <div key={i} className="border-l border-[#1D140F] pl-3">
                     <div className="flex items-center gap-3">
-                      <span className={`text-[9px] font-mono ${j.approved ? "text-emerald-400" : "text-red-400"}`}>
+                      <span className={`text-[11px] font-mono ${j.approved ? "text-emerald-400" : "text-red-400"}`}>
                         {j.approved ? "✓ aprobado" : "⊘ vetado"}
                       </span>
-                      <span className="text-[9px] font-mono text-slate-600">[{j.projectId}]</span>
-                      <span className="text-[9px] font-mono text-slate-700">
+                      <span className="text-[11px] font-mono text-slate-500">[{j.projectId}]</span>
+                      <span className="text-[11px] font-mono text-slate-500">
                         {new Date(j.ts).toLocaleString("es-MX")}
                       </span>
                     </div>
                     {j.reasons.map((r, k) => (
-                      <div key={k} className="text-[9px] font-mono text-slate-600 lowercase">— {r}</div>
+                      <div key={k} className="text-[11px] font-mono text-slate-500 lowercase">— {r}</div>
                     ))}
                   </div>
                 ))}
@@ -254,17 +254,17 @@ export function OpsPanel() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[9px] uppercase tracking-widest font-mono text-[#C97352]">
+              <span className="text-[11px] uppercase tracking-widest font-mono text-[#C97352]">
                 // acta de simbiosis — {actaMd.id}
               </span>
               <button
                 onClick={() => setActaMd(null)}
-                className="text-[9px] uppercase tracking-widest font-mono text-slate-600 hover:text-slate-300"
+                className="text-[11px] uppercase tracking-widest font-mono text-slate-500 hover:text-slate-300"
               >
                 cerrar ✕
               </button>
             </div>
-            <pre className="text-[10px] font-mono text-slate-300 whitespace-pre-wrap leading-relaxed">
+            <pre className="text-[12px] font-mono text-slate-300 whitespace-pre-wrap leading-relaxed">
               {actaMd.markdown}
             </pre>
           </div>

@@ -63,7 +63,7 @@ export function ContactContent() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 font-mono text-xs lowercase">
       <div>
-        <div className="font-mono text-[9px] text-slate-500 mb-4 tracking-widest uppercase">// connection_handshake_v1</div>
+        <div className="font-mono text-[11px] text-slate-500 mb-4 tracking-widest uppercase">// connection_handshake_v1</div>
         <h1 className="text-4xl md:text-6xl font-bold uppercase tracking-tight text-white mb-8 font-sans">
           ¿listo para <span className="text-copper">evolucionar_</span>
         </h1>
@@ -75,7 +75,7 @@ export function ContactContent() {
               <Mail size={16} strokeWidth={1} />
             </div>
             <div>
-              <p className="text-slate-500 text-[10px] tracking-widest font-bold uppercase">// email</p>
+              <p className="text-slate-500 text-[12px] tracking-widest font-bold uppercase">// email</p>
               <a href={`mailto:${CONTACT_EMAIL}`} className="text-white font-medium hover:text-copper transition-colors">
                 {CONTACT_EMAIL}
               </a>
@@ -87,7 +87,7 @@ export function ContactContent() {
       <SmartCard title="envíanos un mensaje" className="p-8">
         <form onSubmit={handleSubmit} className="space-y-6 pt-4">
           <div>
-            <label htmlFor="name" className="block text-[10px] font-mono tracking-widest text-slate-500 uppercase mb-2">// nombre</label>
+            <label htmlFor="name" className="block text-[12px] font-mono tracking-widest text-slate-500 uppercase mb-2">// nombre</label>
             <input
               id="name"
               name="name"
@@ -101,7 +101,7 @@ export function ContactContent() {
             />
           </div>
           <div>
-            <label htmlFor="email" className="block text-[10px] font-mono tracking-widest text-slate-500 uppercase mb-2">// email</label>
+            <label htmlFor="email" className="block text-[12px] font-mono tracking-widest text-slate-500 uppercase mb-2">// email</label>
             <input
               id="email"
               name="email"
@@ -115,7 +115,7 @@ export function ContactContent() {
             />
           </div>
           <div>
-            <label htmlFor="message" className="block text-[10px] font-mono tracking-widest text-slate-500 uppercase mb-2">// mensaje</label>
+            <label htmlFor="message" className="block text-[12px] font-mono tracking-widest text-slate-500 uppercase mb-2">// mensaje</label>
             <textarea
               id="message"
               name="message"
@@ -139,7 +139,7 @@ export function ContactContent() {
               disabled={submitting}
               className="mt-0.5 w-3.5 h-3.5 accent-[#C97352] shrink-0"
             />
-            <span className="text-[11px] font-mono text-slate-500 leading-relaxed group-hover:text-slate-400 transition-colors">
+            <span className="text-[13px] font-mono text-slate-500 leading-relaxed group-hover:text-slate-400 transition-colors">
               acepto el{' '}
               <Link href="/legal/privacidad" target="_blank" className="text-copper underline underline-offset-2 hover:text-amber-500">
                 aviso de privacidad

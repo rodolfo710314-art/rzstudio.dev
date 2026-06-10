@@ -80,7 +80,7 @@ export function TraditionalVsAI() {
           </div>
           <span className="text-slate-400 tracking-wider font-bold">comp_system: tradicional_vs_ia</span>
         </div>
-        <div className="text-[10px] text-slate-600">
+        <div className="text-[12px] text-slate-500">
           [hilo_activo: {selected}]
         </div>
       </div>
@@ -98,7 +98,7 @@ export function TraditionalVsAI() {
               id={`tab-${method}`}
               onClick={() => setSelected(method)}
               className={`
-                py-3 text-[11px] tracking-widest border transition-all duration-300 font-mono relative
+                py-3 text-[13px] tracking-widest border transition-all duration-300 font-mono relative
                 ${isActive
                   ? 'bg-transparent text-white border-copper shadow-[0_0_10px_rgba(201,115,82,0.25)]'
                   : 'bg-transparent text-slate-500 border-slate-800 hover:text-slate-300 hover:border-slate-700'}
@@ -129,28 +129,28 @@ export function TraditionalVsAI() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="border border-slate-800/60 p-4 bg-[#0a0604]">
-              <span className="text-slate-500 text-[10px] block mb-1">// tiempo de entrega</span>
+              <span className="text-slate-500 text-[12px] block mb-1">// tiempo de entrega</span>
               <span className="text-white text-base font-bold tracking-tight">{activeMetrics.time}</span>
             </div>
 
             <div className="border border-slate-800/60 p-4 bg-[#0a0604]">
-              <span className="text-slate-500 text-[10px] block mb-1">// costo de ingeniería</span>
+              <span className="text-slate-500 text-[12px] block mb-1">// costo de ingeniería</span>
               <span className="text-white text-base font-bold tracking-tight">{activeMetrics.cost}</span>
             </div>
 
             <div className="border border-slate-800/60 p-4 bg-[#0a0604]">
-              <span className="text-slate-500 text-[10px] block mb-1">// calidad del software</span>
+              <span className="text-slate-500 text-[12px] block mb-1">// calidad del software</span>
               <span className="text-white text-sm font-bold tracking-tight">{activeMetrics.tests}</span>
             </div>
 
             <div className="border border-slate-800/60 p-4 bg-[#0a0604]">
-              <span className="text-slate-500 text-[10px] block mb-1">// estado_deuda</span>
-              <span className="text-white text-[11px] font-bold tracking-tighter truncate block">{activeMetrics.debt}</span>
+              <span className="text-slate-500 text-[12px] block mb-1">// estado_deuda</span>
+              <span className="text-white text-[13px] font-bold tracking-tighter truncate block">{activeMetrics.debt}</span>
             </div>
           </div>
 
           <div className="border border-slate-800 p-3 bg-slate-900/10 flex items-center justify-between">
-            <span className="text-slate-500 text-[10px]">diagnóstico_eficiencia:</span>
+            <span className="text-slate-500 text-[12px]">diagnóstico_eficiencia:</span>
             <span className={`font-bold ${selected === 'rz-agente' ? 'text-copper' : 'text-slate-300'}`}>
               {activeMetrics.efficiency}
             </span>
@@ -159,10 +159,10 @@ export function TraditionalVsAI() {
 
         {/* PANEL DERECHO: CONSOLA DE COMPILACIÓN SIMULADA */}
         <div className="border border-slate-800 p-4 bg-[#020202] relative overflow-hidden flex flex-col justify-between h-56 md:h-auto">
-          <div className="absolute top-1 right-2 text-[9px] text-slate-700">[sistema_log]</div>
+          <div className="absolute top-1 right-2 text-[11px] text-slate-500">[sistema_log]</div>
           
           <div className="space-y-2 overflow-hidden">
-            <div className="text-slate-600 text-[10px] mb-2">// ejecutando simulación de proyecto...</div>
+            <div className="text-slate-500 text-[12px] mb-2">// ejecutando simulación de proyecto...</div>
             <AnimatePresence mode="wait">
               <motion.div
                 key={selected}
@@ -173,7 +173,7 @@ export function TraditionalVsAI() {
                 className="space-y-1.5"
               >
                 {activeMetrics.logs.map((log, i) => (
-                  <div key={i} className="text-slate-400 text-[10px] font-mono leading-tight break-words">
+                  <div key={i} className="text-slate-400 text-[12px] font-mono leading-tight break-words">
                     {log}
                   </div>
                 ))}
@@ -184,13 +184,13 @@ export function TraditionalVsAI() {
           {/* ESTADO LED DE CONTROL */}
           <div className="border-t border-slate-800/80 pt-3 flex items-center justify-between mt-4">
             <div className="flex items-center gap-2">
-              <span className="text-slate-600 text-[10px]">estado_motor:</span>
-              <div className={`px-2 py-0.5 border text-[9px] uppercase tracking-wider font-bold ${activeMetrics.statusColor}`}>
+              <span className="text-slate-500 text-[12px]">estado_motor:</span>
+              <div className={`px-2 py-0.5 border text-[11px] uppercase tracking-wider font-bold ${activeMetrics.statusColor}`}>
                 {activeMetrics.status}
               </div>
             </div>
             {selected === 'rz-agente' && (
-              <span className="text-copper text-[9px] animate-pulse">// 100% polimórfico en verde</span>
+              <span className="text-copper text-[11px] animate-pulse">// 100% polimórfico en verde</span>
             )}
           </div>
 

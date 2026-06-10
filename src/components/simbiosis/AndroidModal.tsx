@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { Project } from "./data";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 interface AndroidModalProps {
   project: Project | null;
@@ -38,6 +39,7 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
   const [submitting, setSubmitting] = useState(false);
   const [result,     setResult]     = useState<TokenResult | null>(null);
   const closeRef   = useRef<HTMLButtonElement>(null);
+  const trapRef    = useFocusTrap<HTMLDivElement>(!!project);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
@@ -114,6 +116,7 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
 
           <motion.div
             key="modal"
+            ref={trapRef}
             role="dialog" aria-modal="true"
             aria-label={`obtener binario seguro: ${project.name}`}
             initial={{ opacity: 0, scale: 0.97, y: 6 }}
@@ -126,13 +129,13 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
             {/* Header */}
             <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-slate-800/60">
               <div>
-                <span className="font-mono text-[8px] text-[#C97352] uppercase tracking-widest block mb-0.5">
+                <span className="font-mono text-[10px] text-[#C97352] uppercase tracking-widest block mb-0.5">
                   // obtener binario seguro
                 </span>
                 <h3 className="font-mono text-sm text-white lowercase leading-tight">{project.name}</h3>
               </div>
               <button ref={closeRef} onClick={handleClose}
-                className="text-slate-700 hover:text-slate-300 transition-colors mt-0.5" aria-label="cerrar">
+                className="text-slate-500 hover:text-slate-300 transition-colors mt-0.5" aria-label="cerrar">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -148,8 +151,8 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
               {/* Unavailable */}
               {step === "unavailable" && (
                 <div className="space-y-3">
-                  <div className="font-mono text-[9px] text-slate-600 border border-slate-800/50 p-3 bg-black/30 leading-relaxed space-y-1">
-                    <p className="text-amber-600/60 uppercase tracking-widest text-[8px]">// estado del binario</p>
+                  <div className="font-mono text-[11px] text-slate-500 border border-slate-800/50 p-3 bg-black/30 leading-relaxed space-y-1">
+                    <p className="text-amber-600/60 uppercase tracking-widest text-[10px]">// estado del binario</p>
                     <p>{">"} el binario de prueba aún no está disponible para este proyecto.</p>
                     <p>{">"} el agente lo compilará en la próxima iteración del sandbox.</p>
                   </div>
@@ -159,8 +162,8 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
               {/* Lead capture form */}
               {step === "form" && (
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="font-mono text-[9px] text-slate-700 border border-slate-800/50 p-3 bg-black/30 leading-relaxed">
-                    <span className="text-[#C97352]/60 uppercase tracking-widest text-[8px]">// acceso al entorno cerrado —</span>{" "}
+                  <div className="font-mono text-[11px] text-slate-500 border border-slate-800/50 p-3 bg-black/30 leading-relaxed">
+                    <span className="text-[#C97352]/60 uppercase tracking-widest text-[10px]">// acceso al entorno cerrado —</span>{" "}
                     registra tu perfil para obtener el token de acceso. el periodo de prueba de{" "}
                     <span className="text-slate-400">30 días</span> comienza en el primer arranque de la app.
                   </div>
@@ -171,7 +174,7 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
                       onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))}
                       placeholder="tu nombre completo"
                       className="w-full bg-black border border-slate-800 px-3 py-2 font-mono text-xs text-white
-                                 placeholder-slate-800 focus:outline-none focus:border-[#C97352] transition-colors" />
+                                 placeholder-slate-600 focus:outline-none focus:border-[#C97352] transition-colors" />
                   </Field>
 
                   <Field label="email_" required>
@@ -180,17 +183,17 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
                       onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                       placeholder="tu@email.com"
                       className="w-full bg-black border border-slate-800 px-3 py-2 font-mono text-xs text-white
-                                 placeholder-slate-800 focus:outline-none focus:border-[#C97352] transition-colors" />
+                                 placeholder-slate-600 focus:outline-none focus:border-[#C97352] transition-colors" />
                   </Field>
 
                   <Field label="perfil_" required>
                     <div className="grid grid-cols-2 gap-1.5">
                       {ROLES.map((r) => (
                         <label key={r.value}
-                          className={`flex items-center gap-2 border px-2.5 py-2 cursor-pointer transition-colors font-mono text-[9px] lowercase
+                          className={`flex items-center gap-2 border px-2.5 py-2 cursor-pointer transition-colors font-mono text-[11px] lowercase
                             ${form.rol === r.value
                               ? "border-[#C97352] text-[#C97352] bg-[#C97352]/5"
-                              : "border-slate-800 text-slate-600 hover:border-slate-600 hover:text-slate-400"}`}>
+                              : "border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-400"}`}>
                           <input type="radio" name="rol" value={r.value} required
                             checked={form.rol === r.value}
                             onChange={() => setForm((f) => ({ ...f, rol: r.value }))}
@@ -211,7 +214,7 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
                       onChange={(e) => setConsent(e.target.checked)}
                       className="mt-0.5 w-3 h-3 accent-[#C97352] shrink-0"
                     />
-                    <span className="font-mono text-[10px] text-slate-600 leading-relaxed lowercase group-hover:text-slate-500 transition-colors">
+                    <span className="font-mono text-[12px] text-slate-500 leading-relaxed lowercase group-hover:text-slate-500 transition-colors">
                       acepto el{" "}
                       <a href="/legal/privacidad" target="_blank" className="text-[#C97352] underline underline-offset-2">
                         aviso de privacidad
@@ -227,7 +230,7 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
                   {error && <p className="font-mono text-xs text-red-400 lowercase">✗ {error}</p>}
 
                   <button type="submit" disabled={submitting || !form.rol || !consent}
-                    className="w-full bg-[#C97352] text-black font-mono text-[9px] uppercase tracking-widest py-2.5
+                    className="w-full bg-[#C97352] text-black font-mono text-[11px] uppercase tracking-widest py-2.5
                                hover:bg-amber-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                     {submitting ? "> generando token de acceso..." : "obtener token de acceso"}
                   </button>
@@ -238,7 +241,7 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
               {step === "token" && result && (
                 <div className="space-y-4">
                   {result.isExistingToken && (
-                    <div className="font-mono text-[9px] text-amber-600/70 border border-amber-900/30 p-3 leading-relaxed">
+                    <div className="font-mono text-[11px] text-amber-600/70 border border-amber-900/30 p-3 leading-relaxed">
                       {">"} ya tienes un token activo para este proyecto.
                     </div>
                   )}
@@ -251,12 +254,12 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
                   </div>
 
                   {/* Deep link */}
-                  <div className="font-mono text-[9px] text-slate-700 border border-slate-800/50 p-3 bg-black/30 space-y-1 leading-relaxed">
-                    <p className="text-[#C97352]/60 uppercase tracking-widest text-[8px]">// guarda este enlace</p>
+                  <div className="font-mono text-[11px] text-slate-500 border border-slate-800/50 p-3 bg-black/30 space-y-1 leading-relaxed">
+                    <p className="text-[#C97352]/60 uppercase tracking-widest text-[10px]">// guarda este enlace</p>
                     <p className="text-slate-500 break-all select-all">
                       {typeof window !== "undefined" ? window.location.origin : ""}/activate/{result.token}
                     </p>
-                    <p className="text-slate-700 mt-1">
+                    <p className="text-slate-500 mt-1">
                       úsalo para verificar el estado de tu token en cualquier momento.
                     </p>
                   </div>
@@ -264,17 +267,17 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
                   {!result.downloadExpired ? (
                     <a href={result.downloadUrl} download
                       className="flex items-center justify-center gap-2 w-full bg-emerald-950 border border-emerald-800
-                                 text-emerald-400 font-mono text-[9px] uppercase tracking-widest py-3
+                                 text-emerald-400 font-mono text-[11px] uppercase tracking-widest py-3
                                  hover:bg-emerald-900 transition-colors">
                       ↓ descargar binario — enlace válido 24h
                     </a>
                   ) : (
-                    <div className="font-mono text-[9px] text-slate-700 border border-slate-800/50 p-3 leading-relaxed">
+                    <div className="font-mono text-[11px] text-slate-500 border border-slate-800/50 p-3 leading-relaxed">
                       {">"} el enlace de descarga expiró. tu token sigue vigente — contacta a rzstudio para un nuevo enlace.
                     </div>
                   )}
 
-                  <p className="font-mono text-[9px] text-slate-700 lowercase leading-relaxed text-center">
+                  <p className="font-mono text-[11px] text-slate-500 lowercase leading-relaxed text-center">
                     recibirás seguimiento del agente simbiosis en 48h.
                     reporta bugs directamente desde la app.
                   </p>
@@ -291,7 +294,7 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div className="space-y-1">
-      <label className="font-mono text-[9px] text-slate-600 uppercase tracking-wider block">
+      <label className="font-mono text-[11px] text-slate-500 uppercase tracking-wider block">
         {label}{required && <span className="text-[#C97352] ml-0.5">*</span>}
       </label>
       {children}
@@ -302,8 +305,8 @@ function Field({ label, required, children }: { label: string; required?: boolea
 function TokenRow({ label, value, mono, highlight }: { label: string; value: string; mono?: boolean; highlight?: boolean }) {
   return (
     <div className="flex items-baseline justify-between gap-4 border-b border-slate-800/50 px-3 py-2 last:border-0">
-      <span className="font-mono text-[9px] uppercase tracking-widest text-slate-600 shrink-0">{label}</span>
-      <span className={`font-mono text-[10px] lowercase text-right ${highlight ? "text-amber-400" : "text-slate-300"} ${mono ? "tracking-wider" : ""}`}>
+      <span className="font-mono text-[11px] uppercase tracking-widest text-slate-500 shrink-0">{label}</span>
+      <span className={`font-mono text-[12px] lowercase text-right ${highlight ? "text-amber-400" : "text-slate-300"} ${mono ? "tracking-wider" : ""}`}>
         {value}
       </span>
     </div>

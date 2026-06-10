@@ -40,7 +40,7 @@ function StatusDot({ connected }: { connected: boolean }) {
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-4 border-b border-[#1D140F] py-2">
-      <span className="text-[10px] uppercase tracking-widest text-slate-500 font-mono whitespace-nowrap">
+      <span className="text-[12px] uppercase tracking-widest text-slate-500 font-mono whitespace-nowrap">
         {label}
       </span>
       <span className="text-xs font-mono text-white lowercase truncate text-right">{value}</span>
@@ -90,14 +90,14 @@ export function AnthropicPanel() {
           ) : (
             <StatusDot connected={status?.connected ?? false} />
           )}
-          <span className="text-[10px] uppercase tracking-widest font-mono text-slate-400">
+          <span className="text-[12px] uppercase tracking-widest font-mono text-slate-400">
             anthropic api — claude sonnet 4.6
           </span>
         </div>
         <button
           onClick={fetchStatus}
           disabled={statusLoading}
-          className="text-[9px] uppercase tracking-widest font-mono text-slate-600 hover:text-[#C97352] transition-colors disabled:opacity-40"
+          className="text-[11px] uppercase tracking-widest font-mono text-slate-500 hover:text-[#C97352] transition-colors disabled:opacity-40"
         >
           {statusLoading ? "verificando..." : "↺ verificar"}
         </button>
@@ -106,14 +106,14 @@ export function AnthropicPanel() {
       {/* Status */}
       <div className="p-5 space-y-1">
         {statusLoading ? (
-          <p className="text-xs font-mono text-slate-600 lowercase animate-pulse">consultando estado...</p>
+          <p className="text-xs font-mono text-slate-500 lowercase animate-pulse">consultando estado...</p>
         ) : status?.connected ? (
           <>
             <MetaRow label="estado"     value="✓ conectado" />
             {status.key_masked   && <MetaRow label="api key"    value={status.key_masked} />}
             {status.plan_tier    && (
               <div className="flex items-baseline justify-between gap-4 border-b border-[#1D140F] py-2">
-                <span className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">plan</span>
+                <span className="text-[12px] uppercase tracking-widest text-slate-500 font-mono">plan</span>
                 <span className={`text-xs font-mono lowercase ${PLAN_COLORS[status.plan_tier] ?? "text-white"}`}>
                   {PLAN_LABELS[status.plan_tier] ?? status.plan_tier}
                 </span>
@@ -130,7 +130,7 @@ export function AnthropicPanel() {
           </>
         ) : (
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">estado</span>
+            <span className="text-[12px] font-mono text-slate-500 uppercase tracking-widest">estado</span>
             <span className="text-xs font-mono text-red-400 lowercase">
               ✗ {status?.error ?? "sin conexión"}
             </span>
@@ -145,7 +145,7 @@ export function AnthropicPanel() {
             <div className="space-y-1">
               <label
                 htmlFor="api-key-input"
-                className="block text-[10px] uppercase tracking-widest text-slate-400 font-mono"
+                className="block text-[12px] uppercase tracking-widest text-slate-400 font-mono"
               >
                 api key de anthropic console
               </label>
@@ -159,9 +159,9 @@ export function AnthropicPanel() {
                 spellCheck={false}
                 placeholder="sk-ant-api03-..."
                 className="w-full bg-[#111111] border border-[#333] px-3 py-2 text-xs font-mono text-white
-                           focus:outline-none focus:border-[#C97352] transition-colors placeholder:text-slate-600"
+                           focus:outline-none focus:border-[#C97352] transition-colors placeholder:text-slate-500"
               />
-              <p className="text-[9px] font-mono text-slate-600 lowercase">
+              <p className="text-[11px] font-mono text-slate-500 lowercase">
                 obtén tu key en{" "}
                 <span className="text-slate-400">console.anthropic.com → api keys</span>
               </p>
@@ -180,7 +180,7 @@ export function AnthropicPanel() {
               <button
                 type="submit"
                 disabled={isPending}
-                className="border border-[#C97352] px-4 py-2 text-[10px] uppercase tracking-widest font-mono text-[#C97352]
+                className="border border-[#C97352] px-4 py-2 text-[12px] uppercase tracking-widest font-mono text-[#C97352]
                            hover:bg-[#C97352] hover:text-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {isPending ? "conectando..." : "conectar cuenta"}
@@ -188,7 +188,7 @@ export function AnthropicPanel() {
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="text-[10px] uppercase tracking-widest font-mono text-slate-600 hover:text-slate-400 transition-colors"
+                className="text-[12px] uppercase tracking-widest font-mono text-slate-500 hover:text-slate-400 transition-colors"
               >
                 cancelar
               </button>
@@ -200,7 +200,7 @@ export function AnthropicPanel() {
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="border border-[#C97352] px-4 py-2 text-[10px] uppercase tracking-widest font-mono text-[#C97352]
+            className="border border-[#C97352] px-4 py-2 text-[12px] uppercase tracking-widest font-mono text-[#C97352]
                        hover:bg-[#C97352] hover:text-black transition-colors"
           >
             {status?.connected ? "cambiar key" : "conectar cuenta"}
@@ -208,7 +208,7 @@ export function AnthropicPanel() {
         )}
 
         {status?.connected && status.plan_tier === "build" && !showForm && (
-          <p className="text-[10px] font-mono text-slate-600 lowercase leading-relaxed">
+          <p className="text-[12px] font-mono text-slate-500 lowercase leading-relaxed">
             plan build activo — sube a scale cuando los logs muestren errores 429 frecuentes
           </p>
         )}

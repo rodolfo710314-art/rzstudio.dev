@@ -38,7 +38,7 @@ export default function ProcesoPage() {
     <main className="pt-32 pb-20 bg-transparent text-white">
       <section className="container mx-auto px-6">
         <div className="max-w-3xl mb-24 text-center mx-auto">
-          <div className="font-mono text-[9px] text-slate-500 mb-4 tracking-widest uppercase">// software_lifecycle_pipeline</div>
+          <div className="font-mono text-[11px] text-slate-500 mb-4 tracking-widest uppercase">// software_lifecycle_pipeline</div>
           <h1 className="text-4xl md:text-6xl font-sans font-light uppercase tracking-tight text-white mb-6">
             nuestro <span className="glow-title-strong">proceso_</span>
           </h1>

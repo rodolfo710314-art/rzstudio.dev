@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { X, FileText, GitBranch, Activity } from 'lucide-react';
 import { Project } from './data';
 import { DiffBlock } from './DiffBlock';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -37,6 +38,7 @@ export function WarRoom({ project, onClose, onMerge, onPurge }: WarRoomProps) {
   const [resolution, setResolution] = useState<'approved' | 'rejected' | null>(null);
   const [showFlash, setShowFlash] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
+  const trapRef = useFocusTrap<HTMLDivElement>(true);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
@@ -115,6 +117,7 @@ export function WarRoom({ project, onClose, onMerge, onPurge }: WarRoomProps) {
 
   return (
     <motion.div
+      ref={trapRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -136,16 +139,16 @@ export function WarRoom({ project, onClose, onMerge, onPurge }: WarRoomProps) {
       {/* Header */}
       <div className="border-b border-slate-800 px-6 py-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-5">
-          <span className="font-mono text-[8px] text-red-500/70 uppercase tracking-widest animate-pulse">
+          <span className="font-mono text-[10px] text-red-500/70 uppercase tracking-widest animate-pulse">
             ● sala dialéctica activa
           </span>
-          <span className="font-mono text-[8px] text-slate-700 uppercase tracking-wider hidden sm:block" aria-hidden="true">
+          <span className="font-mono text-[10px] text-slate-500 uppercase tracking-wider hidden sm:block" aria-hidden="true">
             // {project.name} // agente: {project.agent}
           </span>
         </div>
         <button
           onClick={onClose}
-          className="text-slate-700 hover:text-slate-400 transition-colors"
+          className="text-slate-500 hover:text-slate-400 transition-colors"
           aria-label="cerrar sala dialéctica"
         >
           <X className="w-4 h-4" />
@@ -157,7 +160,7 @@ export function WarRoom({ project, onClose, onMerge, onPurge }: WarRoomProps) {
         {/* Izquierda — evidencia */}
         <div className="md:w-1/2 border-b md:border-b-0 md:border-r border-slate-800 flex flex-col overflow-hidden max-h-[38vh] md:max-h-none">
           <div className="border-b border-slate-800 px-4 py-2 flex-shrink-0">
-            <span className="font-mono text-[8px] text-slate-700 uppercase tracking-widest" aria-hidden="true">
+            <span className="font-mono text-[10px] text-slate-500 uppercase tracking-widest" aria-hidden="true">
               // referencias y evidencia
             </span>
           </div>
@@ -166,11 +169,11 @@ export function WarRoom({ project, onClose, onMerge, onPurge }: WarRoomProps) {
             <div className="border border-slate-800 p-3 bg-black/20">
               <div className="flex items-center gap-2 mb-2">
                 <FileText className="w-3 h-3 text-copper" strokeWidth={1.5} aria-hidden="true" />
-                <span className="font-mono text-[8px] text-copper uppercase tracking-wider">
+                <span className="font-mono text-[10px] text-copper uppercase tracking-wider">
                   descripción del proyecto
                 </span>
               </div>
-              <p className="font-mono text-[10px] text-slate-500 lowercase leading-relaxed">
+              <p className="font-mono text-[12px] text-slate-500 lowercase leading-relaxed">
                 {project.description}
               </p>
             </div>
@@ -178,7 +181,7 @@ export function WarRoom({ project, onClose, onMerge, onPurge }: WarRoomProps) {
             <div className="border border-slate-800 p-3 bg-black/20">
               <div className="flex items-center gap-2 mb-2.5">
                 <Activity className="w-3 h-3 text-copper" strokeWidth={1.5} aria-hidden="true" />
-                <span className="font-mono text-[8px] text-copper uppercase tracking-wider">
+                <span className="font-mono text-[10px] text-copper uppercase tracking-wider">
                   métricas de sesión
                 </span>
               </div>
@@ -189,8 +192,8 @@ export function WarRoom({ project, onClose, onMerge, onPurge }: WarRoomProps) {
                   { label: 'agente', value: project.agent },
                 ].map(({ label, value }) => (
                   <div key={label}>
-                    <div className="font-mono text-[7px] text-slate-700 uppercase tracking-wider">{label}</div>
-                    <div className="font-mono text-[11px] text-white">{value}</div>
+                    <div className="font-mono text-[10px] text-slate-500 uppercase tracking-wider">{label}</div>
+                    <div className="font-mono text-[13px] text-white">{value}</div>
                   </div>
                 ))}
               </div>
@@ -199,7 +202,7 @@ export function WarRoom({ project, onClose, onMerge, onPurge }: WarRoomProps) {
             <div className="border border-slate-800 p-3 bg-black/20">
               <div className="flex items-center gap-2 mb-2.5">
                 <GitBranch className="w-3 h-3 text-copper" strokeWidth={1.5} aria-hidden="true" />
-                <span className="font-mono text-[8px] text-copper uppercase tracking-wider">
+                <span className="font-mono text-[10px] text-copper uppercase tracking-wider">
                   diff propuesto
                 </span>
               </div>
@@ -207,12 +210,12 @@ export function WarRoom({ project, onClose, onMerge, onPurge }: WarRoomProps) {
             </div>
 
             <div className="border border-slate-800 p-3 bg-black/20">
-              <span className="font-mono text-[8px] text-slate-700 uppercase tracking-widest block mb-2" aria-hidden="true">
+              <span className="font-mono text-[10px] text-slate-500 uppercase tracking-widest block mb-2" aria-hidden="true">
                 // log de auditoría
               </span>
               <div className="space-y-1">
                 {project.auditLogs.map((log, i) => (
-                  <div key={i} className="font-mono text-[9px] text-slate-600">{log}</div>
+                  <div key={i} className="font-mono text-[11px] text-slate-500">{log}</div>
                 ))}
               </div>
             </div>
@@ -222,7 +225,7 @@ export function WarRoom({ project, onClose, onMerge, onPurge }: WarRoomProps) {
         {/* Derecha — chat real */}
         <div className="flex-1 md:w-1/2 flex flex-col min-h-0">
           <div className="border-b border-slate-800 px-4 py-2 flex-shrink-0">
-            <span className="font-mono text-[8px] text-slate-700 uppercase tracking-widest" aria-hidden="true">
+            <span className="font-mono text-[10px] text-slate-500 uppercase tracking-widest" aria-hidden="true">
               // interfaz dialéctica // claude sonnet 4.6 en vivo
             </span>
           </div>
@@ -237,23 +240,23 @@ export function WarRoom({ project, onClose, onMerge, onPurge }: WarRoomProps) {
               <div key={i} className={msg.role === 'user' ? 'text-right' : ''}>
                 {msg.role === 'user' ? (
                   <div className="inline-block text-left max-w-[80%]">
-                    <div className="font-mono text-[7px] text-copper/50 mb-0.5 text-right" aria-hidden="true">// tú</div>
-                    <div className="font-mono text-[11px] text-white border border-slate-800 px-3 py-2 bg-black/40">
+                    <div className="font-mono text-[10px] text-copper/50 mb-0.5 text-right" aria-hidden="true">// tú</div>
+                    <div className="font-mono text-[13px] text-white border border-slate-800 px-3 py-2 bg-black/40">
                       {msg.content}
                     </div>
                   </div>
                 ) : msg.role === 'assistant' ? (
                   <div className="max-w-[92%]">
-                    <div className="font-mono text-[7px] text-slate-700 mb-0.5" aria-hidden="true">
+                    <div className="font-mono text-[10px] text-slate-500 mb-0.5" aria-hidden="true">
                       // agente ingeniero{msg.model ? ` · motor: ${msg.model}` : ''}
                     </div>
-                    <div className="font-mono text-[10px] text-slate-300 leading-relaxed whitespace-pre-wrap border-l border-slate-800 pl-3">
+                    <div className="font-mono text-[12px] text-slate-300 leading-relaxed whitespace-pre-wrap border-l border-slate-800 pl-3">
                       {msg.content}
                     </div>
                   </div>
                 ) : (
                   <div
-                    className={`font-mono text-[10px] leading-relaxed whitespace-pre-line ${
+                    className={`font-mono text-[12px] leading-relaxed whitespace-pre-line ${
                       msg.tone === 'approve' ? 'text-emerald-400/80'
                       : msg.tone === 'reject' ? 'text-red-400/70'
                       : 'text-slate-500'
@@ -266,7 +269,7 @@ export function WarRoom({ project, onClose, onMerge, onPurge }: WarRoomProps) {
             ))}
 
             {processing && (
-              <div className="font-mono text-[10px] text-slate-700" aria-hidden="true">
+              <div className="font-mono text-[12px] text-slate-500" aria-hidden="true">
                 {'> '}
                 <span className="animate-pulse">el agente está razonando...</span>
               </div>
@@ -275,7 +278,7 @@ export function WarRoom({ project, onClose, onMerge, onPurge }: WarRoomProps) {
             {resolution && (
               <div
                 role="status"
-                className={`font-mono text-[10px] border p-3 leading-relaxed ${
+                className={`font-mono text-[12px] border p-3 leading-relaxed ${
                   resolution === 'approved'
                     ? 'border-emerald-900 text-emerald-400/80 bg-emerald-950/10'
                     : 'border-red-900/40 text-red-400/70 bg-red-950/10'
@@ -299,17 +302,17 @@ export function WarRoom({ project, onClose, onMerge, onPurge }: WarRoomProps) {
                 disabled={processing || !!resolution}
                 placeholder="debate la solución con el agente — solo las llaves exactas ejecutan acciones"
                 aria-label="mensaje"
-                className="flex-1 bg-black border border-slate-800 px-3 py-2 font-mono text-[11px] text-white placeholder-slate-800 focus:outline-none focus:border-slate-700 disabled:opacity-40 transition-colors"
+                className="flex-1 bg-black border border-slate-800 px-3 py-2 font-mono text-[13px] text-white placeholder-slate-600 focus:outline-none focus:border-slate-700 disabled:opacity-40 transition-colors"
               />
               <button
                 onClick={handleSend}
                 disabled={processing || !!resolution || !input.trim()}
-                className="font-mono text-[8px] uppercase tracking-wider px-4 border border-slate-800 text-slate-600 hover:border-slate-600 hover:text-slate-300 disabled:opacity-30 transition-colors"
+                className="font-mono text-[10px] uppercase tracking-wider px-4 border border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-300 disabled:opacity-30 transition-colors"
               >
                 env_
               </button>
             </div>
-            <p className="font-mono text-[7px] text-slate-800 mt-2" aria-hidden="true">
+            <p className="font-mono text-[10px] text-slate-500 mt-2" aria-hidden="true">
               requiere sesión de administrador. el merge pasa primero por el juez de hierro.
             </p>
           </div>

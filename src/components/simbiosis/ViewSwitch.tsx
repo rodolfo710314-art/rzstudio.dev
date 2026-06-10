@@ -29,10 +29,10 @@ export function ViewSwitch({ currentView, onSwitch }: ViewSwitchProps) {
             aria-selected={active}
             aria-controls={`panel-${id}`}
             onClick={() => onSwitch(id)}
-            className={`font-mono text-[8px] uppercase tracking-widest px-5 py-2.5 transition-colors duration-200 border-r border-slate-800 last:border-r-0 ${
+            className={`font-mono text-[10px] uppercase tracking-widest px-5 py-2.5 transition-colors duration-200 border-r border-slate-800 last:border-r-0 ${
               active
                 ? 'bg-copper text-black'
-                : 'bg-transparent text-slate-600 hover:text-slate-300'
+                : 'bg-transparent text-slate-500 hover:text-slate-300'
             }`}
           >
             {'[ MODO: '}

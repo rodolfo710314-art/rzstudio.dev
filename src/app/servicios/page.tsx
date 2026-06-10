@@ -42,7 +42,7 @@ export default function ServiciosPage() {
     <main className="pt-32 pb-20 bg-transparent text-white">
       <section className="container mx-auto px-6">
         <div className="max-w-3xl mb-20">
-          <div className="font-mono text-[9px] text-slate-500 mb-4 tracking-widest uppercase">// active_modules_v4.2</div>
+          <div className="font-mono text-[11px] text-slate-500 mb-4 tracking-widest uppercase">// active_modules_v4.2</div>
           <h1 className="text-4xl md:text-6xl font-sans font-light uppercase tracking-tight text-white mb-6">
             nuestros <span className="glow-title-strong">servicios_</span>
           </h1>
@@ -83,7 +83,7 @@ export default function ServiciosPage() {
       {/* --- CTA SECTION --- */}
       <section className="mt-32 bg-[#0c0806] border-y border-slate-800 py-20 font-mono text-xs lowercase">
         <div className="container mx-auto px-6 text-center">
-          <div className="text-[10px] text-copper mb-2 tracking-widest">// consultas_especiales</div>
+          <div className="text-[12px] text-copper mb-2 tracking-widest">// consultas_especiales</div>
           <h2 className="text-2xl md:text-4xl font-bold text-white mb-6 font-sans uppercase">
             ¿no encuentras lo que buscas?
           </h2>

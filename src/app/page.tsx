@@ -12,7 +12,7 @@ export default function Home() {
         
         <div className="container relative z-10 mx-auto px-6 text-center">
           {/* TERMINAL STATUS OVERHEAD */}
-          <div className="inline-flex items-center gap-6 font-mono text-[9px] text-slate-500 mb-6 uppercase tracking-[0.2em] border border-slate-800/40 px-3 py-1 bg-[#050505]/40 backdrop-blur-xs">
+          <div className="inline-flex items-center gap-6 font-mono text-[11px] text-slate-500 mb-6 uppercase tracking-[0.2em] border border-slate-800/40 px-3 py-1 bg-[#050505]/40 backdrop-blur-xs">
             <span>[core_status: optimal]</span>
             <span className="w-1.5 h-1.5 bg-copper animate-pulse rounded-none" />
             <span>[coordinates: 0x2A // 0x9B]</span>
@@ -48,7 +48,7 @@ export default function Home() {
       <section className="py-24 bg-transparent border-t border-[#1D140F] relative">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16 font-mono lowercase">
-            <span className="text-[10px] text-copper tracking-widest uppercase block mb-2">// valor_garantizado</span>
+            <span className="text-[12px] text-copper tracking-widest uppercase block mb-2">// valor_garantizado</span>
             <h2 className="text-2xl md:text-4xl font-bold text-white tracking-tight">
               por qué elegir rzstudio
             </h2>
@@ -84,7 +84,7 @@ export default function Home() {
       <section className="py-24 bg-transparent border-t border-[#1D140F]">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16 font-mono lowercase">
-            <span className="text-[10px] text-copper tracking-widest uppercase block mb-2">// demo_interactiva_central</span>
+            <span className="text-[12px] text-copper tracking-widest uppercase block mb-2">// demo_interactiva_central</span>
             <h2 className="text-2xl md:text-4xl font-bold text-white tracking-tight">
               comparador de rendimiento
             </h2>
@@ -103,7 +103,7 @@ export default function Home() {
         <div className="container mx-auto px-6">
           <div className="flex flex-col lg:flex-row items-center gap-16">
             <div className="flex-1 space-y-6">
-              <span className="font-mono text-copper text-[10px] uppercase tracking-widest block">// capacidades_sistema</span>
+              <span className="font-mono text-copper text-[12px] uppercase tracking-widest block">// capacidades_sistema</span>
               <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-none uppercase">
                 capacidades de próxima generación
               </h2>
@@ -129,13 +129,13 @@ export default function Home() {
             </div>
             
             <div className="flex-1 w-full border border-slate-800 p-8 bg-[#020202] font-mono text-xs lowercase relative">
-              <span className="absolute top-2 right-2 text-[8px] text-slate-700">[sandbox_compiler]</span>
+              <span className="absolute top-2 right-2 text-[10px] text-slate-500">[sandbox_compiler]</span>
               <div className="space-y-3">
                 <div className="text-copper font-bold">// inicializar simulador de servicios...</div>
                 <div className="text-slate-500">
                   {"$ rz-core init --platform=web_engine"}
                 </div>
-                <div className="p-4 border border-[#1D140F] bg-[#050505] space-y-1.5 text-[10px]">
+                <div className="p-4 border border-[#1D140F] bg-[#050505] space-y-1.5 text-[12px]">
                   <div className="text-emerald-500">✓ módulo de ia en la nube conectado.</div>
                   <div className="text-emerald-500">✓ compilador polimórfico en caliente listo.</div>
                   <div className="text-slate-400">✓ 25/25 pruebas de integridad en verde [0.03ms].</div>
@@ -143,7 +143,7 @@ export default function Home() {
                 <div className="text-slate-500 mt-2">
                   {"$ status --verbose"}
                 </div>
-                <div className="text-slate-300 text-[10px]">
+                <div className="text-slate-300 text-[12px]">
                   [estado: activo] • [fps: 60] • [aceleración_gpu: habilitada]
                 </div>
               </div>

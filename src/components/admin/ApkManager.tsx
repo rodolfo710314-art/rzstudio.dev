@@ -29,7 +29,7 @@ function fmt(b: number) {
 const STATUS_COLOR: Record<TokenStatus, string> = {
   active:  "text-emerald-400",
   pending: "text-amber-400",
-  expired: "text-slate-600",
+  expired: "text-slate-500",
   revoked: "text-red-800",
 };
 
@@ -131,11 +131,11 @@ export function ApkManager() {
     <div className="border border-[#1D140F] space-y-0">
       {/* Header */}
       <div className="border-b border-[#1D140F] px-5 py-3 flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-widest font-mono text-slate-400">
+        <span className="text-[12px] uppercase tracking-widest font-mono text-slate-400">
           distribución android — binarios + tokens de acceso
         </span>
         <button onClick={refresh} disabled={loading}
-          className="text-[9px] uppercase tracking-widest font-mono text-slate-600 hover:text-[#C97352] transition-colors disabled:opacity-40">
+          className="text-[11px] uppercase tracking-widest font-mono text-slate-500 hover:text-[#C97352] transition-colors disabled:opacity-40">
           {loading ? "cargando..." : "↺ refrescar"}
         </button>
       </div>
@@ -202,35 +202,35 @@ function ApkRow({ project, meta, tokens, busy, onUpload, onDeleteApk, onRevoke, 
       {/* Project summary */}
       <div className="px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3 min-w-0">
-          <span className="text-[8px] font-mono text-slate-700">[{project.id}]</span>
+          <span className="text-[10px] font-mono text-slate-500">[{project.id}]</span>
           <span className="text-xs font-mono text-white lowercase truncate">{project.name}</span>
-          <span className="text-[8px] font-mono text-slate-700 border border-[#1D140F] px-1.5 py-0.5 uppercase shrink-0">
+          <span className="text-[10px] font-mono text-slate-500 border border-[#1D140F] px-1.5 py-0.5 uppercase shrink-0">
             {project.platform}
           </span>
         </div>
         <div className="flex items-center gap-3 shrink-0 flex-wrap">
           {meta ? (
             <>
-              <span className="text-[9px] font-mono text-emerald-400">✓ v{meta.version} — {fmt(meta.size)}</span>
-              <span className="text-[9px] font-mono text-slate-600">
+              <span className="text-[11px] font-mono text-emerald-400">✓ v{meta.version} — {fmt(meta.size)}</span>
+              <span className="text-[11px] font-mono text-slate-500">
                 {active}a / {pending}p / {tokens.length} total
               </span>
               {tokens.length > 0 && (
                 <button onClick={() => setShowTokens((v) => !v)}
-                  className="text-[9px] uppercase tracking-widest font-mono text-slate-500 hover:text-[#C97352] transition-colors">
+                  className="text-[11px] uppercase tracking-widest font-mono text-slate-500 hover:text-[#C97352] transition-colors">
                   {showTokens ? "ocultar tokens" : "ver tokens"}
                 </button>
               )}
               <button onClick={onDeleteApk} disabled={busy}
-                className="text-[9px] uppercase tracking-widest font-mono text-red-900 hover:text-red-500 transition-colors disabled:opacity-40">
+                className="text-[11px] uppercase tracking-widest font-mono text-red-900 hover:text-red-500 transition-colors disabled:opacity-40">
                 purgar APK
               </button>
             </>
           ) : (
-            <span className="text-[9px] font-mono text-slate-700">sin APK</span>
+            <span className="text-[11px] font-mono text-slate-500">sin APK</span>
           )}
           <button onClick={() => setShowUpload((v) => !v)}
-            className="text-[9px] uppercase tracking-widest font-mono text-slate-500 hover:text-[#C97352] transition-colors border border-[#333] px-2 py-1">
+            className="text-[11px] uppercase tracking-widest font-mono text-slate-500 hover:text-[#C97352] transition-colors border border-[#333] px-2 py-1">
             {meta ? "reemplazar APK" : "subir APK"}
           </button>
         </div>
@@ -240,14 +240,14 @@ function ApkRow({ project, meta, tokens, busy, onUpload, onDeleteApk, onRevoke, 
       {showUpload && (
         <div className="px-5 py-3 bg-black/20 flex items-end gap-3 flex-wrap">
           <div className="space-y-1">
-            <label className="block text-[9px] uppercase tracking-widest text-slate-600 font-mono">versión</label>
+            <label className="block text-[11px] uppercase tracking-widest text-slate-500 font-mono">versión</label>
             <input ref={versionRef} type="text" defaultValue="1.0.0" placeholder="1.0.0"
               className="bg-[#111] border border-[#333] px-2 py-1 text-xs font-mono text-white w-24 focus:outline-none focus:border-[#C97352] transition-colors" />
           </div>
           <div className="space-y-1">
-            <label className="block text-[9px] uppercase tracking-widest text-slate-600 font-mono">archivo .apk</label>
+            <label className="block text-[11px] uppercase tracking-widest text-slate-500 font-mono">archivo .apk</label>
             <label className="flex items-center gap-2 border border-[#333] px-3 py-1.5 cursor-pointer hover:border-[#C97352] transition-colors">
-              <span className="text-[9px] uppercase tracking-widest font-mono text-slate-500">
+              <span className="text-[11px] uppercase tracking-widest font-mono text-slate-500">
                 {fileName ?? "seleccionar archivo"}
               </span>
               <input type="file" accept=".apk" className="hidden" ref={fileInputRef}
@@ -256,12 +256,12 @@ function ApkRow({ project, meta, tokens, busy, onUpload, onDeleteApk, onRevoke, 
           </div>
           <button onClick={() => { onUpload(); setShowUpload(false); setFileName(null); }}
             disabled={busy || !fileName}
-            className="border border-[#C97352] px-4 py-1.5 text-[9px] uppercase tracking-widest font-mono text-[#C97352]
+            className="border border-[#C97352] px-4 py-1.5 text-[11px] uppercase tracking-widest font-mono text-[#C97352]
                        hover:bg-[#C97352] hover:text-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
             {busy ? "subiendo..." : "subir"}
           </button>
           <button onClick={() => { setShowUpload(false); setFileName(null); }}
-            className="text-[9px] uppercase font-mono text-slate-700 hover:text-slate-400 transition-colors">
+            className="text-[11px] uppercase font-mono text-slate-500 hover:text-slate-400 transition-colors">
             cancelar
           </button>
         </div>
@@ -270,11 +270,11 @@ function ApkRow({ project, meta, tokens, busy, onUpload, onDeleteApk, onRevoke, 
       {/* Token table */}
       {showTokens && tokens.length > 0 && (
         <div className="overflow-x-auto">
-          <table className="w-full text-[9px] font-mono">
+          <table className="w-full text-[11px] font-mono">
             <thead>
               <tr className="border-b border-[#1D140F]">
                 {["tester", "email", "rol", "estado", "días restantes", "activado", "expira", "acciones"].map((h) => (
-                  <th key={h} className="text-left px-4 py-2 uppercase tracking-widest text-slate-700 whitespace-nowrap">{h}</th>
+                  <th key={h} className="text-left px-4 py-2 uppercase tracking-widest text-slate-500 whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -288,10 +288,10 @@ function ApkRow({ project, meta, tokens, busy, onUpload, onDeleteApk, onRevoke, 
                   <td className={`px-4 py-2 ${t.daysRemaining !== null && t.daysRemaining <= 5 ? "text-amber-400" : "text-slate-400"}`}>
                     {t.daysRemaining !== null ? `${t.daysRemaining}d` : "—"}
                   </td>
-                  <td className="px-4 py-2 text-slate-600">
+                  <td className="px-4 py-2 text-slate-500">
                     {t.firstActivatedAt ? new Date(t.firstActivatedAt).toLocaleDateString("es-MX") : "—"}
                   </td>
-                  <td className="px-4 py-2 text-slate-600">
+                  <td className="px-4 py-2 text-slate-500">
                     {t.expiresAt ? new Date(t.expiresAt).toLocaleDateString("es-MX") : "—"}
                   </td>
                   <td className="px-4 py-2">

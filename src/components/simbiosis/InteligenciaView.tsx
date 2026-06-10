@@ -103,7 +103,7 @@ export function InteligenciaView({ onActivate }: InteligenciaViewProps) {
     <div className="space-y-14">
       {/* Intro */}
       <div className="max-w-2xl">
-        <span className="font-mono text-[10px] text-copper uppercase tracking-widest block mb-3" aria-hidden="true">
+        <span className="font-mono text-[12px] text-copper uppercase tracking-widest block mb-3" aria-hidden="true">
           // descripción del sistema
         </span>
         <p className="font-mono text-sm text-slate-400 leading-relaxed lowercase">
@@ -111,7 +111,7 @@ export function InteligenciaView({ onActivate }: InteligenciaViewProps) {
           de ia trabajan de forma autónoma, coordinada y verificable para construir, auditar y optimizar
           software en tiempo real.
         </p>
-        <p className="font-mono text-xs text-slate-600 leading-relaxed lowercase mt-3">
+        <p className="font-mono text-xs text-slate-500 leading-relaxed lowercase mt-3">
           el sistema opera en modo de inteligencia adaptativa por defecto. activa el núcleo simbiótico
           para acceder al sandbox interactivo completo con los 6 proyectos beta en ejecución.
         </p>
@@ -130,16 +130,16 @@ export function InteligenciaView({ onActivate }: InteligenciaViewProps) {
             <div className="font-mono text-2xl font-bold text-white tabular-nums">
               <AnimatedStat value={value} delay={i * 80 + 300} />
             </div>
-            <div className="font-mono text-[8px] text-slate-700 uppercase tracking-wider mt-0.5">{unit}</div>
+            <div className="font-mono text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">{unit}</div>
             <div className="w-4 h-[1px] bg-copper mt-2.5 mb-1.5" aria-hidden="true" />
-            <div className="font-mono text-[10px] text-slate-600 lowercase">{label}</div>
+            <div className="font-mono text-[12px] text-slate-500 lowercase">{label}</div>
           </motion.div>
         ))}
       </div>
 
       {/* Capabilities */}
       <div>
-        <span className="font-mono text-[10px] text-copper uppercase tracking-widest block mb-6" aria-hidden="true">
+        <span className="font-mono text-[12px] text-copper uppercase tracking-widest block mb-6" aria-hidden="true">
           // capacidades del núcleo
         </span>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -150,7 +150,7 @@ export function InteligenciaView({ onActivate }: InteligenciaViewProps) {
               </div>
               <div>
                 <div className="font-mono text-xs text-white lowercase mb-1">{label}</div>
-                <p className="font-mono text-[10px] text-slate-600 lowercase leading-relaxed">{desc}</p>
+                <p className="font-mono text-[12px] text-slate-500 lowercase leading-relaxed">{desc}</p>
               </div>
             </div>
           ))}
@@ -160,7 +160,7 @@ export function InteligenciaView({ onActivate }: InteligenciaViewProps) {
       {/* CTA */}
       <div className="border border-slate-800 p-6 bg-[#030303] flex flex-col sm:flex-row items-center justify-between gap-5">
         <div>
-          <div className="font-mono text-[8px] text-slate-700 uppercase tracking-widest mb-1" aria-hidden="true">
+          <div className="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-1" aria-hidden="true">
             // siguiente estado del sistema
           </div>
           <p className="font-mono text-sm text-white lowercase">
@@ -169,7 +169,7 @@ export function InteligenciaView({ onActivate }: InteligenciaViewProps) {
         </div>
         <button
           onClick={onActivate}
-          className="flex-shrink-0 bg-copper text-black font-mono text-[9px] uppercase tracking-widest px-8 py-3 hover:bg-amber-600 transition-colors"
+          className="flex-shrink-0 bg-copper text-black font-mono text-[11px] uppercase tracking-widest px-8 py-3 hover:bg-amber-600 transition-colors"
         >
           activar núcleo simbiótico →
         </button>

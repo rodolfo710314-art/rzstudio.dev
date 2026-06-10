@@ -29,7 +29,7 @@ export function ROICalculator() {
         {/* CONTROLES */}
         <div className="space-y-8">
           <div>
-            <label htmlFor="budget" className="flex justify-between font-mono text-[11px] text-slate-400 mb-4">
+            <label htmlFor="budget" className="flex justify-between font-mono text-[13px] text-slate-400 mb-4">
               <span>// presupuesto mensual actual (usd)</span>
               <span className="text-copper font-bold font-mono">${budget.toLocaleString()}</span>
             </label>
@@ -46,7 +46,7 @@ export function ROICalculator() {
           </div>
 
           <div>
-            <label htmlFor="months" className="flex justify-between font-mono text-[11px] text-slate-400 mb-4">
+            <label htmlFor="months" className="flex justify-between font-mono text-[13px] text-slate-400 mb-4">
               <span>// duración estimada del proyecto (meses)</span>
               <span className="text-copper font-bold font-mono">{months} meses</span>
             </label>
@@ -63,7 +63,7 @@ export function ROICalculator() {
           </div>
 
           <div className="p-4 bg-[#020202] rounded-none border border-slate-800">
-            <p className="text-[10px] text-slate-600 italic">
+            <p className="text-[12px] text-slate-500 italic">
               * cálculos basados en el benchmark promedio de implementación de rzstudio vs desarrollo tradicional.
             </p>
           </div>
@@ -72,30 +72,30 @@ export function ROICalculator() {
         {/* RESULTADOS */}
         <div className="grid grid-cols-1 gap-4 font-mono">
           <div className="relative group p-6 bg-[#0c0806] rounded-none border border-copper/30 overflow-hidden transition-all duration-300 hover:border-copper/70">
-             <p className="text-slate-500 text-[10px] mb-1 uppercase tracking-widest font-bold font-mono">// ahorro mensual estimado</p>
+             <p className="text-slate-500 text-[12px] mb-1 uppercase tracking-widest font-bold font-mono">// ahorro mensual estimado</p>
              <h4 className="text-3xl font-bold text-white mb-2 font-mono">
                 ${savings.toLocaleString()} <span className="text-xs font-normal text-slate-500">usd</span>
              </h4>
-             <p className="text-copper text-[10px] flex items-center gap-2 font-mono">
+             <p className="text-copper text-[12px] flex items-center gap-2 font-mono">
                 <TrendingUp size={12} /> +62% eficiencia de costos
              </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 bg-[#020202] rounded-none border border-slate-800">
-               <p className="text-slate-500 text-[9px] mb-1 uppercase tracking-widest font-mono">// tiempo ahorrado</p>
+               <p className="text-slate-500 text-[11px] mb-1 uppercase tracking-widest font-mono">// tiempo ahorrado</p>
                <h4 className="text-xl font-bold text-white mb-1 font-mono">
-                  {timeSaved.toFixed(1)} <span className="text-[10px] font-normal text-slate-500">meses</span>
+                  {timeSaved.toFixed(1)} <span className="text-[12px] font-normal text-slate-500">meses</span>
                </h4>
-               <p className="text-copper text-[9px] font-bold tracking-tighter uppercase font-mono">86% más rápido</p>
+               <p className="text-copper text-[11px] font-bold tracking-tighter uppercase font-mono">86% más rápido</p>
             </div>
 
             <div className="p-4 bg-[#020202] rounded-none border border-slate-800">
-               <p className="text-slate-500 text-[9px] mb-1 uppercase tracking-widest font-mono">// roi proyectado</p>
+               <p className="text-slate-500 text-[11px] mb-1 uppercase tracking-widest font-mono">// roi proyectado</p>
                <h4 className="text-xl font-bold text-white mb-1 font-mono">
                   {roi}%
                </h4>
-               <p className="text-copper text-[9px] font-bold tracking-tighter uppercase font-mono">exponencial</p>
+               <p className="text-copper text-[11px] font-bold tracking-tighter uppercase font-mono">exponencial</p>
             </div>
           </div>
 

@@ -16,13 +16,13 @@ function P({ children }: { children: React.ReactNode }) {
 export default function PrivacidadPage() {
   return (
     <article>
-      <span className="font-mono text-[10px] text-slate-500 uppercase tracking-widest block mb-2">
+      <span className="font-mono text-[12px] text-slate-500 uppercase tracking-widest block mb-2">
         // legal
       </span>
       <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-tight text-white font-sans">
         aviso de privacidad
       </h1>
-      <p className="font-mono text-[11px] text-slate-600 mt-3 lowercase">
+      <p className="font-mono text-[13px] text-slate-500 mt-3 lowercase">
         versión base — en revisión por asesoría legal. última actualización: 11 de junio de 2026.
       </p>
 

@@ -37,7 +37,7 @@ export function DiffBlock({ codeDiff }: DiffBlockProps) {
       {codeDiff.old.map((line, i) => (
         <div
           key={`old-${i}`}
-          className="font-mono text-[9px] text-red-400/60 whitespace-pre leading-5"
+          className="font-mono text-[11px] text-red-400/60 whitespace-pre leading-5"
           dangerouslySetInnerHTML={{ __html: `- ${tokenize(line)}` }}
         />
       ))}
@@ -45,7 +45,7 @@ export function DiffBlock({ codeDiff }: DiffBlockProps) {
       {codeDiff.new.map((line, i) => (
         <div
           key={`new-${i}`}
-          className="font-mono text-[9px] text-emerald-400/70 whitespace-pre leading-5"
+          className="font-mono text-[11px] text-emerald-400/70 whitespace-pre leading-5"
           dangerouslySetInnerHTML={{ __html: `+ ${tokenize(line)}` }}
         />
       ))}

@@ -47,10 +47,10 @@ export function Ticker({ project }: TickerProps) {
         }`}
         aria-hidden="true"
       />
-      <span className="font-mono text-[9px] text-slate-500 truncate">
+      <span className="font-mono text-[11px] text-slate-500 truncate">
         {displayed}
         {charIdx < fullText.length && (
-          <span className="animate-pulse text-slate-700" aria-hidden="true">_</span>
+          <span className="animate-pulse text-slate-500" aria-hidden="true">_</span>
         )}
       </span>
     </div>

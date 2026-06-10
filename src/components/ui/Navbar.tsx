@@ -51,7 +51,7 @@ export function Navbar() {
           {/* LOGO */}
           <Link href="/" className="flex items-center gap-3 group" aria-label="rzstudio.dev">
             <div className="relative py-2 flex items-center justify-center">
-              <svg viewBox="0 0 600 200" className="w-48 h-auto drop-shadow-[0_0_14px_rgba(56,189,248,0.35)]">
+              <svg viewBox="0 0 600 200" className="w-36 md:w-48 h-auto drop-shadow-[0_0_14px_rgba(56,189,248,0.35)]">
                 <defs>
                   {/* Blue breeze — sweeps across the full "RZStudio.dev" in userSpace coords */}
                   <linearGradient id="blueSweep" gradientUnits="userSpaceOnUse" x1="-300" y1="0" x2="-100" y2="0">
@@ -76,7 +76,7 @@ export function Navbar() {
 
                 {/* White star base — single stroke, no double outline */}
                 <text x="20" y="130" fontFamily="'Inter', sans-serif" fontWeight="200" fontSize="84"
-                  fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="1.5">RZStudio</text>
+                  fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.55)" strokeWidth="1.5">RZStudio</text>
 
                 {/* Blue sweep overlay — same strokeWidth to avoid doubling */}
                 <text x="20" y="130" fontFamily="'Inter', sans-serif" fontWeight="200" fontSize="84"
@@ -84,7 +84,7 @@ export function Navbar() {
 
                 {/* .dev — white base */}
                 <text x="487" y="130" fontFamily="'JetBrains Mono', monospace" fontWeight="100" fontSize="32"
-                  fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="1">.dev</text>
+                  fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.55)" strokeWidth="1">.dev</text>
 
                 {/* .dev — blue sweep */}
                 <text x="487" y="130" fontFamily="'JetBrains Mono', monospace" fontWeight="100" fontSize="32"

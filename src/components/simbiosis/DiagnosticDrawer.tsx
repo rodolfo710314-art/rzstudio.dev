@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Zap, Cpu, Hash } from 'lucide-react';
 import { Project } from './data';
 import { DiffBlock } from './DiffBlock';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { TriggerConfirmModal } from './TriggerConfirmModal';
 
 interface DiagnosticDrawerProps {
@@ -33,6 +34,7 @@ export function DiagnosticDrawer({
   const [confirming, setConfirming] = useState<'merge' | 'purge' | null>(null);
   const [executing, setExecuting] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const trapRef = useFocusTrap<HTMLElement>(!!project);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
@@ -155,6 +157,7 @@ export function DiagnosticDrawer({
           {/* Panel */}
           <motion.aside
             key="drawer-panel"
+            ref={trapRef}
             role="dialog"
             aria-modal="true"
             aria-label={`panel de diagnóstico: ${project.name}`}
@@ -167,7 +170,7 @@ export function DiagnosticDrawer({
             {/* Header */}
             <div className="border-b border-slate-800 px-5 py-4 flex items-center justify-between flex-shrink-0">
               <div>
-                <span className="font-mono text-[8px] text-copper uppercase tracking-widest block" aria-hidden="true">
+                <span className="font-mono text-[10px] text-copper uppercase tracking-widest block" aria-hidden="true">
                   // panel de diagnóstico
                 </span>
                 <h2 className="font-mono text-sm text-white lowercase mt-0.5">
@@ -177,7 +180,7 @@ export function DiagnosticDrawer({
               <button
                 ref={closeButtonRef}
                 onClick={onClose}
-                className="text-slate-700 hover:text-slate-300 transition-colors"
+                className="text-slate-500 hover:text-slate-300 transition-colors"
                 aria-label="cerrar panel"
               >
                 <X className="w-4 h-4" />
@@ -190,10 +193,10 @@ export function DiagnosticDrawer({
                 <div key={label} className="flex items-center gap-2">
                   <Icon className="w-3 h-3 text-copper flex-shrink-0" strokeWidth={1.5} aria-hidden="true" />
                   <div>
-                    <div className="font-mono text-[7px] text-slate-700 uppercase tracking-wider">
+                    <div className="font-mono text-[10px] text-slate-500 uppercase tracking-wider">
                       {label}
                     </div>
-                    <div className="font-mono text-[11px] text-white">{value}</div>
+                    <div className="font-mono text-[13px] text-white">{value}</div>
                   </div>
                 </div>
               ))}
@@ -203,7 +206,7 @@ export function DiagnosticDrawer({
             <div className="flex-1 overflow-y-auto p-5 space-y-5">
               {/* Terminal log */}
               <div>
-                <span className="font-mono text-[8px] text-slate-700 uppercase tracking-widest block mb-2" aria-hidden="true">
+                <span className="font-mono text-[10px] text-slate-500 uppercase tracking-widest block mb-2" aria-hidden="true">
                   // flujo de conciencia ia
                 </span>
                 <div className="bg-black border border-slate-800 p-3 min-h-[110px] space-y-1.5" aria-live="polite">
@@ -213,7 +216,7 @@ export function DiagnosticDrawer({
                       initial={{ opacity: 0, x: -4 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.2 }}
-                      className={`font-mono text-[10px] ${
+                      className={`font-mono text-[12px] ${
                         log.includes('[WARN]') || log.includes('[ALERT]')
                           ? 'text-amber-500/80'
                           : log.includes('[INIT]') || log.includes('[PERF]')
@@ -225,7 +228,7 @@ export function DiagnosticDrawer({
                     </motion.div>
                   ))}
                   {visibleLogs.length < project.auditLogs.length && (
-                    <span className="font-mono text-[10px] text-slate-800 animate-pulse" aria-hidden="true">
+                    <span className="font-mono text-[12px] text-slate-500 animate-pulse" aria-hidden="true">
                       {'> _'}
                     </span>
                   )}
@@ -234,7 +237,7 @@ export function DiagnosticDrawer({
 
               {/* Micro-diff */}
               <div>
-                <span className="font-mono text-[8px] text-slate-700 uppercase tracking-widest block mb-2" aria-hidden="true">
+                <span className="font-mono text-[10px] text-slate-500 uppercase tracking-widest block mb-2" aria-hidden="true">
                   // micro-diff propuesto
                 </span>
                 <DiffBlock codeDiff={project.codeDiff} />
@@ -249,7 +252,7 @@ export function DiagnosticDrawer({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   role="status"
-                  className={`mx-5 mb-3 px-4 py-2.5 font-mono text-[9px] border ${
+                  className={`mx-5 mb-3 px-4 py-2.5 font-mono text-[11px] border ${
                     resolution === 'merged'
                       ? 'border-emerald-900 text-emerald-400/80 bg-emerald-950/20'
                       : resolution === 'vetoed'
@@ -273,21 +276,21 @@ export function DiagnosticDrawer({
               <button
                 onClick={() => setConfirming('merge')}
                 disabled={resolution === 'merged' || resolution === 'purged' || executing}
-                className="flex-1 bg-copper text-black font-mono text-[8px] uppercase tracking-widest py-2.5 hover:bg-amber-600 transition-colors disabled:opacity-40"
+                className="flex-1 bg-copper text-black font-mono text-[10px] uppercase tracking-widest py-2.5 hover:bg-amber-600 transition-colors disabled:opacity-40"
               >
                 {executing ? 'ejecutando...' : 'ejecutar merge'}
               </button>
               <button
                 onClick={() => onDebate(project)}
                 disabled={resolution === 'merged' || resolution === 'purged' || executing}
-                className="flex-1 border border-slate-700 text-slate-400 font-mono text-[8px] uppercase tracking-widest py-2.5 hover:border-slate-500 hover:text-slate-200 transition-colors disabled:opacity-40"
+                className="flex-1 border border-slate-700 text-slate-400 font-mono text-[10px] uppercase tracking-widest py-2.5 hover:border-slate-500 hover:text-slate-200 transition-colors disabled:opacity-40"
               >
                 rebatir solución
               </button>
               <button
                 onClick={() => setConfirming('purge')}
                 disabled={resolution === 'merged' || resolution === 'purged' || executing}
-                className="font-mono text-[8px] uppercase tracking-wider text-red-900/50 hover:text-red-500/60 px-4 border border-transparent hover:border-red-900/20 transition-colors disabled:opacity-40"
+                className="font-mono text-[10px] uppercase tracking-wider text-red-900/50 hover:text-red-500/60 px-4 border border-transparent hover:border-red-900/20 transition-colors disabled:opacity-40"
               >
                 purgar
               </button>

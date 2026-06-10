@@ -134,3 +134,40 @@ body {
   animation: consolePowerOn 0.2s ease-out forwards;
 }
 
+
+/* --- ACCESIBILIDAD (Fase D) --- */
+
+/* Foco visible en navegación por teclado — toda la app */
+:focus-visible {
+  outline: 1px solid #C97352;
+  outline-offset: 2px;
+}
+
+/* Skip-link: invisible hasta recibir foco */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 10000;
+  background: #050505;
+  color: #C97352;
+  border: 1px solid #C97352;
+  padding: 0.6rem 1rem;
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 12px;
+  text-transform: lowercase;
+}
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+}
+
+/* Usuarios con sensibilidad al movimiento: anular animaciones y transiciones CSS */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
