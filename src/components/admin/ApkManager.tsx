@@ -45,6 +45,7 @@ export function ApkManager() {
   const [loading, setLoading] = useState(true);
   const [msg,     setMsg]     = useState<{ ok: boolean; text: string } | null>(null);
   const [uploading, setUploading] = useState<string | null>(null);
+  const [progress,  setProgress]  = useState<number>(0);
   const [deleting,  setDeleting]  = useState<string | null>(null);
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
   const versionRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -65,29 +66,89 @@ export function ApkManager() {
 
   useEffect(() => { refresh(); }, [refresh]);
 
+  // Subida con progreso: XHR PUT directo a la sesión resumable de GCS.
+  function xhrPutWithProgress(url: string, file: File, onProgress: (pct: number) => void): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", url);
+      xhr.setRequestHeader("Content-Type", "application/vnd.android.package-archive");
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+      };
+      xhr.onload = () => (xhr.status >= 200 && xhr.status < 300)
+        ? resolve()
+        : reject(new Error(`gcs respondió ${xhr.status}`));
+      xhr.onerror   = () => reject(new Error("error de red durante la subida"));
+      xhr.ontimeout = () => reject(new Error("timeout de subida"));
+      xhr.send(file);
+    });
+  }
+
   async function handleUpload(projectId: string) {
     const input   = fileInputs.current[projectId];
     const version = (versionRefs.current[projectId]?.value ?? "1.0.0").trim() || "1.0.0";
-    if (!input?.files?.[0]) return;
+    const file    = input?.files?.[0];
+    if (!file) return;
 
-    setUploading(projectId); setMsg(null);
-    const fd = new FormData();
-    fd.append("apk", input.files[0]);
-    fd.append("projectId", projectId);
-    fd.append("version", version);
+    setUploading(projectId); setMsg(null); setProgress(0);
 
     try {
-      const res  = await fetch("/api/admin/apk", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
-        setMsg({ ok: false, text: data.error ?? "error al subir" });
-      } else {
-        setMsg({ ok: true, text: `✓ subido — ${data.meta.filename}` });
-        input.value = "";
-        await refresh();
+      // Paso 1: pedir la sesión de subida
+      const signRes = await fetch("/api/admin/apk/sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId, version, filename: file.name }),
+      });
+      const sign = await signRes.json();
+      if (!signRes.ok) {
+        setMsg({ ok: false, text: sign.error ?? "no se pudo iniciar la subida" });
+        return;
       }
-    } catch { setMsg({ ok: false, text: "error de red" }); }
-    finally  { setUploading(null); }
+
+      if (sign.mode === "gcs") {
+        // Paso 2: el archivo va DIRECTO al bucket (no pasa por el servidor)
+        await xhrPutWithProgress(sign.uploadUrl, file, setProgress);
+
+        // Paso 3: confirmar — el servidor verifica el objeto y registra la metadata
+        const confRes = await fetch("/api/admin/apk/confirm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            projectId: sign.projectId,
+            filename:  sign.filename,
+            version:   sign.version,
+            originalName: file.name,
+          }),
+        });
+        const conf = await confRes.json();
+        if (!confRes.ok || !conf.ok) {
+          setMsg({ ok: false, text: conf.error ?? "la subida no se pudo confirmar" });
+          return;
+        }
+        setMsg({ ok: true, text: `✓ subido — ${conf.meta.filename} (${fmt(conf.meta.size)})` });
+      } else {
+        // Dev local sin GCS: multipart clásico (límite 30 MB)
+        const fd = new FormData();
+        fd.append("apk", file);
+        fd.append("projectId", projectId);
+        fd.append("version", version);
+        const res  = await fetch("/api/admin/apk", { method: "POST", body: fd });
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          setMsg({ ok: false, text: data.error ?? "error al subir" });
+          return;
+        }
+        setMsg({ ok: true, text: `✓ subido — ${data.meta.filename}` });
+      }
+
+      if (input) input.value = "";
+      await refresh();
+    } catch (err) {
+      setMsg({ ok: false, text: (err as Error).message ?? "error de red" });
+    } finally {
+      setUploading(null);
+      setProgress(0);
+    }
   }
 
   async function handleDeleteApk(projectId: string) {
@@ -160,6 +221,7 @@ export function ApkManager() {
               meta={meta ?? null}
               tokens={ptTokens}
               busy={busy}
+              progress={uploading === project.id ? progress : null}
               onUpload={() => handleUpload(project.id)}
               onDeleteApk={() => handleDeleteApk(project.id)}
               onRevoke={handleRevoke}
@@ -181,6 +243,7 @@ interface ApkRowProps {
   meta:         ApkMeta | null;
   tokens:       EnrichedToken[];
   busy:         boolean;
+  progress:     number | null;
   onUpload:     () => void;
   onDeleteApk:  () => void;
   onRevoke:     (token: string) => void;
@@ -189,10 +252,7 @@ interface ApkRowProps {
   versionRef:   (el: HTMLInputElement | null) => void;
 }
 
-// Límite práctico de subida: Cloud Run rechaza requests > 32MB (HTTP/1)
-const MAX_UPLOAD_BYTES = 30 * 1024 * 1024;
-
-function ApkRow({ project, meta, tokens, busy, onUpload, onDeleteApk, onRevoke, onExtend, fileInputRef, versionRef }: ApkRowProps) {
+function ApkRow({ project, meta, tokens, busy, progress, onUpload, onDeleteApk, onRevoke, onExtend, fileInputRef, versionRef }: ApkRowProps) {
   // Sin APK → el formulario de carga queda visible de inmediato (sin clics extra)
   const [showUpload, setShowUpload] = useState(!meta);
   const [showTokens, setShowTokens] = useState(false);
@@ -208,11 +268,6 @@ function ApkRow({ project, meta, tokens, busy, onUpload, onDeleteApk, onRevoke, 
     if (!file) { setFileName(null); setFileSize(0); return; }
     if (!file.name.toLowerCase().endsWith(".apk")) {
       setFileError("el archivo debe tener extensión .apk");
-      setFileName(null); setFileSize(0);
-      return;
-    }
-    if (file.size > MAX_UPLOAD_BYTES) {
-      setFileError(`el archivo pesa ${fmt(file.size)} — el límite de subida es 30 MB (límite de cloud run)`);
       setFileName(null); setFileSize(0);
       return;
     }
@@ -279,7 +334,7 @@ function ApkRow({ project, meta, tokens, busy, onUpload, onDeleteApk, onRevoke, 
               <>
                 <span className="text-sm font-mono text-[#C97352]">⬆ seleccionar archivo .apk</span>
                 <span className="text-[11px] font-mono text-slate-500 lowercase">
-                  haz clic aquí para elegir el binario (máx. 30 MB)
+                  haz clic aquí para elegir el binario — soporta archivos de varios GB
                 </span>
               </>
             )}
@@ -296,6 +351,17 @@ function ApkRow({ project, meta, tokens, busy, onUpload, onDeleteApk, onRevoke, 
             <p className="text-xs font-mono text-red-400 lowercase">✗ {fileError}</p>
           )}
 
+          {busy && progress !== null && (
+            <div className="space-y-1">
+              <div className="h-1.5 bg-[#111] border border-[#1D140F]">
+                <div className="h-full bg-[#C97352] transition-all duration-300" style={{ width: `${progress}%` }} />
+              </div>
+              <p className="text-[11px] font-mono text-slate-500 lowercase">
+                subiendo directo al bucket — {progress}% · no cierres esta pestaña
+              </p>
+            </div>
+          )}
+
           <div className="flex items-end gap-3 flex-wrap">
             <div className="space-y-1">
               <label className="block text-[11px] uppercase tracking-widest text-slate-500 font-mono">versión</label>
@@ -306,7 +372,7 @@ function ApkRow({ project, meta, tokens, busy, onUpload, onDeleteApk, onRevoke, 
               disabled={busy || !fileName}
               className="border border-[#C97352] px-5 py-2 text-[11px] uppercase tracking-widest font-mono text-[#C97352]
                          hover:bg-[#C97352] hover:text-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-              {busy ? "> subiendo..." : "subir al laboratorio"}
+              {busy ? `> subiendo... ${progress ?? 0}%` : "subir al laboratorio"}
             </button>
             {meta && (
               <button onClick={() => { setShowUpload(false); setFileName(null); setFileError(null); }}

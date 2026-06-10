@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/admin-auth";
 import { getApkMeta } from "@/lib/apk-store";
-import { readApkBlob } from "@/lib/blob";
+import { readApkBlob, getSignedDownloadUrl } from "@/lib/blob";
 
 export async function GET(req: NextRequest) {
   if (!(await verifyAdmin())) {
@@ -15,6 +15,10 @@ export async function GET(req: NextRequest) {
 
   const meta = await getApkMeta(projectId);
   if (!meta) return NextResponse.json({ error: "sin APK para este proyecto" }, { status: 404 });
+
+  // Con GCS: descarga directa del bucket vía URL firmada (archivos de GB)
+  const signed = await getSignedDownloadUrl(projectId, meta.filename);
+  if (signed) return NextResponse.redirect(signed, 302);
 
   const data = await readApkBlob(projectId, meta.filename);
   if (!data) {

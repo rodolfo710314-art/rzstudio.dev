@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isDownloadValid } from "@/lib/apk-store";
-import { readApkBlob } from "@/lib/blob";
+import { readApkBlob, getSignedDownloadUrl } from "@/lib/blob";
 
 // GET /api/v1/build/download?t={token}
-// Valida la ventana de descarga de 24h y entrega el APK (GCS o disco local).
+// Valida la ventana de descarga de 24h. Con GCS: redirige a una URL firmada
+// (15 min) y el tester baja directo del bucket — APKs de GB sin tocar Cloud Run.
+// Driver local (dev): entrega el archivo directamente.
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("t")?.trim();
 
@@ -20,6 +22,12 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  const signed = await getSignedDownloadUrl(meta.projectId, meta.filename);
+  if (signed) {
+    return NextResponse.redirect(signed, 302);
+  }
+
+  // Fallback dev: archivo local pequeño
   const data = await readApkBlob(meta.projectId, meta.filename);
   if (!data) {
     return NextResponse.json({ error: "archivo no encontrado en el servidor" }, { status: 404 });
