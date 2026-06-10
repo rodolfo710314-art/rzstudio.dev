@@ -29,7 +29,10 @@ export async function POST(req: NextRequest) {
 
   const safeId   = projectId.replace(/[^a-z0-9-]/gi, "_");
   const filename = `app-${safeId}-v${version}.apk`;
-  const origin   = req.nextUrl.origin;
+  // Detrás del proxy de Cloud Run, nextUrl.origin puede no ser el dominio público.
+  // El origin de la sesión GCS DEBE coincidir exactamente con el del navegador,
+  // o el preflight CORS bloquea la subida en silencio.
+  const origin   = process.env.RZ_BASE_URL ?? req.nextUrl.origin;
 
   try {
     const uploadUrl = await createUploadSession(

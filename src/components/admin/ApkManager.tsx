@@ -45,6 +45,7 @@ export function ApkManager() {
   const [loading, setLoading] = useState(true);
   const [msg,     setMsg]     = useState<{ ok: boolean; text: string } | null>(null);
   const [uploading, setUploading] = useState<string | null>(null);
+  const [uploadFile, setUploadFile] = useState<{ name: string; size: number } | null>(null);
   const [progress,  setProgress]  = useState<number>(0);
   const [deleting,  setDeleting]  = useState<string | null>(null);
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -67,19 +68,40 @@ export function ApkManager() {
   useEffect(() => { refresh(); }, [refresh]);
 
   // Subida con progreso: XHR PUT directo a la sesión resumable de GCS.
+  // Watchdog: si no hay NINGÚN progreso en 25s, abortamos con diagnóstico —
+  // un cuelgue en 0% casi siempre es preflight CORS bloqueado (origin distinto).
   function xhrPutWithProgress(url: string, file: File, onProgress: (pct: number) => void): Promise<void> {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
+      let gotProgress = false;
+
+      const watchdog = setTimeout(() => {
+        if (!gotProgress) {
+          xhr.abort();
+          reject(new Error(
+            "la subida no arrancó en 25s — posible bloqueo CORS del bucket. " +
+            "abre la consola del navegador (F12 → Console) y compárteme el error rojo",
+          ));
+        }
+      }, 25_000);
+
       xhr.open("PUT", url);
       xhr.setRequestHeader("Content-Type", "application/vnd.android.package-archive");
       xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+        if (e.loaded > 0) gotProgress = true;
+        if (e.lengthComputable && e.total > 0) {
+          onProgress(Math.round((e.loaded / e.total) * 100));
+        }
       };
-      xhr.onload = () => (xhr.status >= 200 && xhr.status < 300)
-        ? resolve()
-        : reject(new Error(`gcs respondió ${xhr.status}`));
-      xhr.onerror   = () => reject(new Error("error de red durante la subida"));
-      xhr.ontimeout = () => reject(new Error("timeout de subida"));
+      xhr.onload = () => {
+        clearTimeout(watchdog);
+        if (xhr.status >= 200 && xhr.status < 300) resolve();
+        else reject(new Error(`gcs respondió ${xhr.status} ${xhr.statusText || ""}`.trim()));
+      };
+      xhr.onerror = () => {
+        clearTimeout(watchdog);
+        reject(new Error("error de red durante la subida (revisa la consola del navegador: F12)"));
+      };
       xhr.send(file);
     });
   }
@@ -91,6 +113,7 @@ export function ApkManager() {
     if (!file) return;
 
     setUploading(projectId); setMsg(null); setProgress(0);
+    setUploadFile({ name: file.name, size: file.size });
 
     try {
       // Paso 1: pedir la sesión de subida
@@ -151,6 +174,7 @@ export function ApkManager() {
       setMsg({ ok: false, text: (err as Error).message ?? "error de red" });
     } finally {
       setUploading(null);
+      setUploadFile(null);
       setProgress(0);
     }
   }
@@ -226,6 +250,7 @@ export function ApkManager() {
               tokens={ptTokens}
               busy={busy}
               progress={uploading === project.id ? progress : null}
+              uploadFile={uploading === project.id ? uploadFile : null}
               onUpload={() => handleUpload(project.id)}
               onDeleteApk={() => handleDeleteApk(project.id)}
               onRevoke={handleRevoke}
@@ -248,6 +273,7 @@ interface ApkRowProps {
   tokens:       EnrichedToken[];
   busy:         boolean;
   progress:     number | null;
+  uploadFile:   { name: string; size: number } | null;
   onUpload:     () => void;
   onDeleteApk:  () => void;
   onRevoke:     (token: string) => void;
@@ -256,7 +282,7 @@ interface ApkRowProps {
   versionRef:   (el: HTMLInputElement | null) => void;
 }
 
-function ApkRow({ project, meta, tokens, busy, progress, onUpload, onDeleteApk, onRevoke, onExtend, fileInputRef, versionRef }: ApkRowProps) {
+function ApkRow({ project, meta, tokens, busy, progress, uploadFile, onUpload, onDeleteApk, onRevoke, onExtend, fileInputRef, versionRef }: ApkRowProps) {
   // Sin APK → el formulario de carga queda visible de inmediato (sin clics extra)
   const [showUpload, setShowUpload] = useState(!meta);
   const [showTokens, setShowTokens] = useState(false);
@@ -346,8 +372,8 @@ function ApkRow({ project, meta, tokens, busy, progress, onUpload, onDeleteApk, 
           >
             {busy ? (
               <>
-                <span className="text-sm font-mono text-[#C97352] animate-pulse">⬆ subiendo {fileName ?? "archivo"}...</span>
-                <span className="text-[11px] font-mono text-slate-500">{progress ?? 0}% de {fmt(fileSize)} — no cierres esta pestaña</span>
+                <span className="text-sm font-mono text-[#C97352] animate-pulse">⬆ subiendo {uploadFile?.name ?? fileName ?? "archivo"}...</span>
+                <span className="text-[11px] font-mono text-slate-500">{progress ?? 0}% de {fmt(uploadFile?.size ?? fileSize)} — no cierres esta pestaña</span>
               </>
             ) : fileName ? (
               <>
@@ -366,6 +392,7 @@ function ApkRow({ project, meta, tokens, busy, progress, onUpload, onDeleteApk, 
               type="file"
               accept=".apk,application/vnd.android.package-archive"
               className="hidden"
+              disabled={busy}
               ref={fileInputRef}
               onChange={(e) => handleFilePick(e.target.files?.[0] ?? null)}
             />
