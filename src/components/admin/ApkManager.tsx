@@ -100,6 +100,10 @@ export function ApkManager() {
         body: JSON.stringify({ projectId, version, filename: file.name }),
       });
       const sign = await signRes.json();
+      if (signRes.status === 401) {
+        setMsg({ ok: false, text: "sesión expirada — recarga la página e inicia sesión de nuevo" });
+        return;
+      }
       if (!signRes.ok) {
         setMsg({ ok: false, text: sign.error ?? "no se pudo iniciar la subida" });
         return;
@@ -273,6 +277,8 @@ function ApkRow({ project, meta, tokens, busy, progress, onUpload, onDeleteApk, 
     }
     setFileName(file.name);
     setFileSize(file.size);
+    // Arranque automático: elegir archivo = iniciar subida (sin pasos extra)
+    onUpload();
   }
 
   const active  = tokens.filter((t) => t.status === "active").length;
@@ -320,15 +326,33 @@ function ApkRow({ project, meta, tokens, busy, progress, onUpload, onDeleteApk, 
       {/* Upload form */}
       {showUpload && (
         <div className="px-5 py-4 bg-black/20 space-y-3">
+          {/* Paso 1: versión (antes de elegir el archivo — la subida arranca al elegirlo) */}
+          <div className="flex items-center gap-3">
+            <label className="text-[11px] uppercase tracking-widest text-slate-500 font-mono shrink-0">
+              1 · versión
+            </label>
+            <input ref={versionRef} type="text" defaultValue="1.0.0" placeholder="1.0.0"
+              disabled={busy}
+              className="bg-[#111] border border-[#333] px-2 py-1.5 text-xs font-mono text-white w-28 focus:outline-none focus:border-[#C97352] transition-colors disabled:opacity-40" />
+            <span className="text-[11px] font-mono text-slate-500 lowercase">
+              2 · elige el archivo — la subida inicia automáticamente
+            </span>
+          </div>
+
           {/* Zona de carga prominente — clic en cualquier parte abre el selector */}
           <label
             className="flex flex-col items-center justify-center gap-2 border border-dashed border-[#555] px-6 py-6
                        cursor-pointer hover:border-[#C97352] hover:bg-[#C97352]/5 transition-colors"
           >
-            {fileName ? (
+            {busy ? (
+              <>
+                <span className="text-sm font-mono text-[#C97352] animate-pulse">⬆ subiendo {fileName ?? "archivo"}...</span>
+                <span className="text-[11px] font-mono text-slate-500">{progress ?? 0}% de {fmt(fileSize)} — no cierres esta pestaña</span>
+              </>
+            ) : fileName ? (
               <>
                 <span className="text-sm font-mono text-emerald-400">✓ {fileName}</span>
-                <span className="text-[11px] font-mono text-slate-500">{fmt(fileSize)} — listo para subir</span>
+                <span className="text-[11px] font-mono text-slate-500">{fmt(fileSize)}</span>
               </>
             ) : (
               <>
@@ -363,17 +387,13 @@ function ApkRow({ project, meta, tokens, busy, progress, onUpload, onDeleteApk, 
           )}
 
           <div className="flex items-end gap-3 flex-wrap">
-            <div className="space-y-1">
-              <label className="block text-[11px] uppercase tracking-widest text-slate-500 font-mono">versión</label>
-              <input ref={versionRef} type="text" defaultValue="1.0.0" placeholder="1.0.0"
-                className="bg-[#111] border border-[#333] px-2 py-1.5 text-xs font-mono text-white w-28 focus:outline-none focus:border-[#C97352] transition-colors" />
-            </div>
-            <button onClick={() => { onUpload(); setFileName(null); setFileSize(0); }}
-              disabled={busy || !fileName}
-              className="border border-[#C97352] px-5 py-2 text-[11px] uppercase tracking-widest font-mono text-[#C97352]
-                         hover:bg-[#C97352] hover:text-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-              {busy ? `> subiendo... ${progress ?? 0}%` : "subir al laboratorio"}
-            </button>
+            {fileName && !busy && (
+              <button onClick={() => onUpload()}
+                className="border border-[#C97352] px-5 py-2 text-[11px] uppercase tracking-widest font-mono text-[#C97352]
+                           hover:bg-[#C97352] hover:text-black transition-colors">
+                reintentar subida
+              </button>
+            )}
             {meta && (
               <button onClick={() => { setShowUpload(false); setFileName(null); setFileError(null); }}
                 className="text-[11px] uppercase font-mono text-slate-500 hover:text-slate-400 transition-colors">

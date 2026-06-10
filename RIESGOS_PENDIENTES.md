@@ -51,6 +51,17 @@ e incluir al menos un pendiente relacionado con el área que se toca.
   desde el panel admin y mandar un mensaje al war room) y verificar que el acta registre
   el motor gemini.
 
+## 🟠 Pendientes — control de costos por fase (aprobado 11/06/2026)
+
+- [ ] **#F1 Cupo de testers por fase** — campo `testing.max_testers` en el `.rz-manifest.json`
+  de cada proyecto; el registro rechaza con "cupo de la fase lleno" al alcanzarlo
+  (el interesado queda como lead). Cupo versionado en git junto al código.
+- [ ] **#F2 Tope de descargas por token** — máx. 3 descargas por token (cubre reintentos
+  de conexión, corta el abuso). Registrar contador de descargas en el token.
+- [ ] **#F3 Indicadores de cupo** — dashboard: "cupo: 14/20" por proyecto; modal público:
+  "quedan N lugares en esta fase".
+  Acotamiento resultante (fase de 20 testers, APK 1.5 GB): máx. ~$10.80 USD de egreso.
+
 ## 🟡 Pendientes — baja prioridad
 
 - [ ] **#11 Rotación de logs JSONL** — `usage-log.jsonl` e `iron-judge-log.jsonl` crecen sin
