@@ -189,10 +189,36 @@ interface ApkRowProps {
   versionRef:   (el: HTMLInputElement | null) => void;
 }
 
+// Límite práctico de subida: Cloud Run rechaza requests > 32MB (HTTP/1)
+const MAX_UPLOAD_BYTES = 30 * 1024 * 1024;
+
 function ApkRow({ project, meta, tokens, busy, onUpload, onDeleteApk, onRevoke, onExtend, fileInputRef, versionRef }: ApkRowProps) {
-  const [showUpload, setShowUpload] = useState(false);
+  // Sin APK → el formulario de carga queda visible de inmediato (sin clics extra)
+  const [showUpload, setShowUpload] = useState(!meta);
   const [showTokens, setShowTokens] = useState(false);
   const [fileName,   setFileName]   = useState<string | null>(null);
+  const [fileSize,   setFileSize]   = useState<number>(0);
+  const [fileError,  setFileError]  = useState<string | null>(null);
+
+  // Si el APK se purga, reabrir el formulario; si se sube, colapsarlo
+  useEffect(() => { setShowUpload(!meta); }, [meta?.filename]);
+
+  function handleFilePick(file: File | null) {
+    setFileError(null);
+    if (!file) { setFileName(null); setFileSize(0); return; }
+    if (!file.name.toLowerCase().endsWith(".apk")) {
+      setFileError("el archivo debe tener extensión .apk");
+      setFileName(null); setFileSize(0);
+      return;
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setFileError(`el archivo pesa ${fmt(file.size)} — el límite de subida es 30 MB (límite de cloud run)`);
+      setFileName(null); setFileSize(0);
+      return;
+    }
+    setFileName(file.name);
+    setFileSize(file.size);
+  }
 
   const active  = tokens.filter((t) => t.status === "active").length;
   const pending = tokens.filter((t) => t.status === "pending").length;
@@ -238,32 +264,57 @@ function ApkRow({ project, meta, tokens, busy, onUpload, onDeleteApk, onRevoke, 
 
       {/* Upload form */}
       {showUpload && (
-        <div className="px-5 py-3 bg-black/20 flex items-end gap-3 flex-wrap">
-          <div className="space-y-1">
-            <label className="block text-[11px] uppercase tracking-widest text-slate-500 font-mono">versión</label>
-            <input ref={versionRef} type="text" defaultValue="1.0.0" placeholder="1.0.0"
-              className="bg-[#111] border border-[#333] px-2 py-1 text-xs font-mono text-white w-24 focus:outline-none focus:border-[#C97352] transition-colors" />
+        <div className="px-5 py-4 bg-black/20 space-y-3">
+          {/* Zona de carga prominente — clic en cualquier parte abre el selector */}
+          <label
+            className="flex flex-col items-center justify-center gap-2 border border-dashed border-[#555] px-6 py-6
+                       cursor-pointer hover:border-[#C97352] hover:bg-[#C97352]/5 transition-colors"
+          >
+            {fileName ? (
+              <>
+                <span className="text-sm font-mono text-emerald-400">✓ {fileName}</span>
+                <span className="text-[11px] font-mono text-slate-500">{fmt(fileSize)} — listo para subir</span>
+              </>
+            ) : (
+              <>
+                <span className="text-sm font-mono text-[#C97352]">⬆ seleccionar archivo .apk</span>
+                <span className="text-[11px] font-mono text-slate-500 lowercase">
+                  haz clic aquí para elegir el binario (máx. 30 MB)
+                </span>
+              </>
+            )}
+            <input
+              type="file"
+              accept=".apk,application/vnd.android.package-archive"
+              className="hidden"
+              ref={fileInputRef}
+              onChange={(e) => handleFilePick(e.target.files?.[0] ?? null)}
+            />
+          </label>
+
+          {fileError && (
+            <p className="text-xs font-mono text-red-400 lowercase">✗ {fileError}</p>
+          )}
+
+          <div className="flex items-end gap-3 flex-wrap">
+            <div className="space-y-1">
+              <label className="block text-[11px] uppercase tracking-widest text-slate-500 font-mono">versión</label>
+              <input ref={versionRef} type="text" defaultValue="1.0.0" placeholder="1.0.0"
+                className="bg-[#111] border border-[#333] px-2 py-1.5 text-xs font-mono text-white w-28 focus:outline-none focus:border-[#C97352] transition-colors" />
+            </div>
+            <button onClick={() => { onUpload(); setFileName(null); setFileSize(0); }}
+              disabled={busy || !fileName}
+              className="border border-[#C97352] px-5 py-2 text-[11px] uppercase tracking-widest font-mono text-[#C97352]
+                         hover:bg-[#C97352] hover:text-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+              {busy ? "> subiendo..." : "subir al laboratorio"}
+            </button>
+            {meta && (
+              <button onClick={() => { setShowUpload(false); setFileName(null); setFileError(null); }}
+                className="text-[11px] uppercase font-mono text-slate-500 hover:text-slate-400 transition-colors">
+                cancelar
+              </button>
+            )}
           </div>
-          <div className="space-y-1">
-            <label className="block text-[11px] uppercase tracking-widest text-slate-500 font-mono">archivo .apk</label>
-            <label className="flex items-center gap-2 border border-[#333] px-3 py-1.5 cursor-pointer hover:border-[#C97352] transition-colors">
-              <span className="text-[11px] uppercase tracking-widest font-mono text-slate-500">
-                {fileName ?? "seleccionar archivo"}
-              </span>
-              <input type="file" accept=".apk" className="hidden" ref={fileInputRef}
-                onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)} />
-            </label>
-          </div>
-          <button onClick={() => { onUpload(); setShowUpload(false); setFileName(null); }}
-            disabled={busy || !fileName}
-            className="border border-[#C97352] px-4 py-1.5 text-[11px] uppercase tracking-widest font-mono text-[#C97352]
-                       hover:bg-[#C97352] hover:text-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-            {busy ? "subiendo..." : "subir"}
-          </button>
-          <button onClick={() => { setShowUpload(false); setFileName(null); }}
-            className="text-[11px] uppercase font-mono text-slate-500 hover:text-slate-400 transition-colors">
-            cancelar
-          </button>
         </div>
       )}
 
