@@ -1,10 +1,11 @@
 "use server";
 
 import { timingSafeEqual, createHmac } from "node:crypto";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { createSessionToken, COOKIE_NAME } from "@/lib/admin-session";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export interface LoginState {
   error?: string;
@@ -15,6 +16,14 @@ export async function loginAction(
   formData: FormData
 ): Promise<LoginState> {
   await connection(); // fuerza evaluación de process.env en runtime, no en build-time
+
+  // Anti fuerza bruta: 5 intentos por minuto por IP
+  const hdrs = await headers();
+  const ip = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ?? hdrs.get("x-real-ip") ?? "unknown";
+  const rate = checkRateLimit(`login:${ip}`, 5, 60_000);
+  if (!rate.allowed) {
+    return { error: `demasiados intentos — espera ${rate.retryAfterSeconds}s` };
+  }
 
   const password = (formData.get("password") as string) ?? "";
 

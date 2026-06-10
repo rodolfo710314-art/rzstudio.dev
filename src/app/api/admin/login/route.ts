@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { timingSafeEqual, createHmac } from "node:crypto";
 import { COOKIE_NAME, createSessionToken } from "@/lib/admin-session";
+import { checkRateLimit, clientIp } from "@/lib/rate-limit";
 
 function safeCompare(a: string, b: string): boolean {
   try {
@@ -15,6 +16,15 @@ function safeCompare(a: string, b: string): boolean {
 
 export async function POST(req: NextRequest) {
   try {
+    // Mismo bucket que el Server Action ("login:{ip}") — sin bypass entre vías de entrada
+    const rate = checkRateLimit(`login:${clientIp(req)}`, 5, 60_000);
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: "demasiados intentos" },
+        { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
+      );
+    }
+
     const { password } = (await req.json()) as { password?: string };
 
     if (!password || typeof password !== "string") {

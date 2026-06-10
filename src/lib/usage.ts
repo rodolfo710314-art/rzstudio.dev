@@ -66,3 +66,11 @@ export function isOverBudget(projectId: string): boolean {
   const usage = getMonthlyUsage().find((u) => u.projectId === projectId);
   return !!usage && usage.budgetMonthly !== null && usage.totalTokens >= usage.budgetMonthly;
 }
+
+/** Tokens consumidos HOY (UTC) por un projectId — para topes diarios (ej. chat público). */
+export function getDailyTokens(projectId: string): number {
+  const today = new Date().toISOString().slice(0, 10);
+  return readLog<UsageEntry>(USAGE_FILE, 50_000)
+    .filter((e) => e.projectId === projectId && e.ts.startsWith(today))
+    .reduce((sum, e) => sum + e.inputTokens + e.outputTokens, 0);
+}
