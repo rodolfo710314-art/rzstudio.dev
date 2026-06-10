@@ -4,6 +4,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { toToon } from "./toon";
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
@@ -149,18 +150,18 @@ export function assembleSystemPrompt(projectId: string): { prompt: string; manif
     };
   }
 
-  const skills = manifest.authorized_skills.length
-    ? manifest.authorized_skills.map((s) => `${s}()`).join(", ")
-    : "ninguna";
-
+  // Contexto del proyecto en TOON (ADR 11/06/2026 — formato denso para el modelo)
   const dynamic = `
-CONTEXTO ACTUAL: Estás auditando '${manifest.name}' (id: ${manifest.project_id}).
-Stack: ${manifest.stack.join(", ")}.
-Reglas críticas del proyecto:
-${manifest.critical_rules.map((r) => `- ${r}`).join("\n")}
-Skills autorizadas para este proyecto: ${skills}. No ofrezcas análisis que requieran herramientas fuera de esta lista.
-Umbrales del Juez de Hierro: caída máx. lighthouse ${manifest.iron_judge_thresholds.lighthouse_score_drop_max} pts, aumento máx. de bundle ${manifest.iron_judge_thresholds.bundle_size_increase_max_kb}kb, errores de linting permitidos: ${manifest.iron_judge_thresholds.linting_errors_allowed}.
-Presupuesto: ${manifest.budget.tokens_monthly.toLocaleString()} tokens/mes.`;
+CONTEXTO ACTUAL — estás auditando '${manifest.name}':
+${toToon({
+    proyecto:          manifest.project_id,
+    stack:             manifest.stack,
+    reglas_criticas:   manifest.critical_rules,
+    skills_autorizadas: manifest.authorized_skills,
+    umbrales_juez:     manifest.iron_judge_thresholds,
+    presupuesto_tokens_mes: manifest.budget.tokens_monthly,
+  })}
+No ofrezcas análisis que requieran herramientas fuera de skills_autorizadas.`;
 
   return {
     prompt: ADN_BASE + (projectId === "00" ? META_SHIELD : "") + "\n" + dynamic,

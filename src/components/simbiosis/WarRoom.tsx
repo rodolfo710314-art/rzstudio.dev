@@ -14,6 +14,7 @@ interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
   tone?: 'approve' | 'reject' | 'neutral';
+  model?: string; // motor que respondió (trazabilidad del fallback)
 }
 
 interface WarRoomProps {
@@ -101,7 +102,7 @@ export function WarRoom({ project, onClose, onMerge, onPurge }: WarRoomProps) {
         return;
       }
 
-      setMessages((prev) => [...prev, { role: 'assistant', content: data.reply ?? '…' }]);
+      setMessages((prev) => [...prev, { role: 'assistant', content: data.reply ?? '…', model: data.model }]);
     } catch {
       setMessages((prev) => [...prev, {
         role: 'system', tone: 'reject',
@@ -243,7 +244,9 @@ export function WarRoom({ project, onClose, onMerge, onPurge }: WarRoomProps) {
                   </div>
                 ) : msg.role === 'assistant' ? (
                   <div className="max-w-[92%]">
-                    <div className="font-mono text-[7px] text-slate-700 mb-0.5" aria-hidden="true">// agente ingeniero</div>
+                    <div className="font-mono text-[7px] text-slate-700 mb-0.5" aria-hidden="true">
+                      // agente ingeniero{msg.model ? ` · motor: ${msg.model}` : ''}
+                    </div>
                     <div className="font-mono text-[10px] text-slate-300 leading-relaxed whitespace-pre-wrap border-l border-slate-800 pl-3">
                       {msg.content}
                     </div>

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getActiveKey } from '@/lib/runtime-key';
 import { checkRateLimit, clientIp } from '@/lib/rate-limit';
-import { recordUsage, getDailyTokens } from '@/lib/usage';
+import { getDailyTokens } from '@/lib/usage';
+import { callLLM } from '@/lib/llm';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -44,9 +45,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Mensaje demasiado largo' }, { status: 400 });
     }
 
-    const apiKey = getActiveKey();
-
-    if (!apiKey) {
+    // Sin Anthropic Y sin posibilidad de fallback no hay motor; el cliente
+    // unificado intenta Gemini si Anthropic falla, así que solo verificamos el tope.
+    if (!getActiveKey() && !process.env.GEMINI_MODEL) {
       return NextResponse.json({
         reply: 'hola. soy el núcleo de rzstudio en modo demostración. configura la anthropic_api_key para habilitar mi cerebro completo.',
         mode: 'demo',
@@ -70,44 +71,17 @@ export async function POST(req: NextRequest) {
       { role: 'user', content: message },
     ];
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1024,
-        system:
-          'Eres el asistente experto de RZStudio. Responde de forma concisa, profesional y con estilo terminal — usa minúsculas cuando sea apropiado. Tu objetivo es ayudar a los visitantes a entender cómo la IA de RZStudio puede potenciar sus proyectos. Sé directo y evita respuestas genéricas.',
-        messages,
-      }),
+    // Cliente unificado: Sonnet 4.6 → fallback Gemini (registra consumo internamente)
+    const result = await callLLM({
+      system:
+        'Eres el asistente experto de RZStudio. Responde de forma concisa, profesional y con estilo terminal — usa minúsculas cuando sea apropiado. Tu objetivo es ayudar a los visitantes a entender cómo la IA de RZStudio puede potenciar sus proyectos. Sé directo y evita respuestas genéricas.',
+      messages,
+      maxTokens: 1024,
+      projectId: CHAT_PROJECT_ID,
+      agent: 'chat',
     });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error('Anthropic API error:', response.status, errText);
-      return NextResponse.json(
-        { error: 'Error al conectar con el modelo' },
-        { status: 502 },
-      );
-    }
-
-    const data = await response.json();
-    const reply: string = data?.content?.[0]?.text ?? 'respuesta no disponible.';
-
-    // Cost Governor: el chat público también se contabiliza
-    await recordUsage({
-      projectId:    CHAT_PROJECT_ID,
-      agent:        'chat',
-      model:        'claude-sonnet-4-6',
-      inputTokens:  data?.usage?.input_tokens ?? 0,
-      outputTokens: data?.usage?.output_tokens ?? 0,
-    });
-
-    return NextResponse.json({ reply, mode: 'live' });
+    return NextResponse.json({ reply: result.text || 'respuesta no disponible.', mode: 'live' });
   } catch (error) {
     console.error('Error en Chat API:', error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });

@@ -35,6 +35,22 @@ e incluir al menos un pendiente relacionado con el área que se toca.
 - [ ] **#9b VoBo legal** — los textos de `/legal/*` son borradores base; sustituirlos por la
   redacción validada por el abogado (insumos en `legal/RESUMEN_DATOS_PARA_ABOGADO.md`).
 
+## 🟠 Pendientes — Fase C (activación en producción)
+
+- [ ] **#C1 Habilitar Vertex AI** para el fallback Gemini:
+  ```
+  gcloud services enable aiplatform.googleapis.com
+  gcloud projects add-iam-policy-binding rzstudio-bcd94 \
+    --member="serviceAccount:406401048480-compute@developer.gserviceaccount.com" \
+    --role="roles/aiplatform.user"
+  ```
+- [ ] **#C2 Validar el ID del modelo Gemini** — configurado `GEMINI_MODEL=gemini-3.1-pro`
+  (default del código). Si Vertex responde 404 al primer fallback, ajustar la variable
+  al ID disponible en la consola de Vertex AI → Model Garden.
+- [ ] **#C3 Probar el fallback real** — forzarlo una vez (desconectar la key de Anthropic
+  desde el panel admin y mandar un mensaje al war room) y verificar que el acta registre
+  el motor gemini.
+
 ## 🟡 Pendientes — baja prioridad
 
 - [ ] **#11 Rotación de logs JSONL** — `usage-log.jsonl` e `iron-judge-log.jsonl` crecen sin

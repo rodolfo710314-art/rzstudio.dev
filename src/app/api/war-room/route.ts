@@ -4,15 +4,14 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/admin-auth";
-import { getActiveKey } from "@/lib/runtime-key";
 import { assembleSystemPrompt, detectTrigger } from "@/lib/manifest";
 import { judgeCode } from "@/lib/iron-judge";
 import { mergeAiPr, purgeAiPr } from "@/lib/github";
 import { createActa, recallContext } from "@/lib/actas";
-import { recordUsage, isOverBudget } from "@/lib/usage";
+import { isOverBudget } from "@/lib/usage";
+import { callLLM } from "@/lib/llm";
+import { toonBlock } from "@/lib/toon";
 import { PROJECTS } from "@/components/simbiosis/data";
-
-const MODEL = "claude-sonnet-4-6";
 
 interface Msg { role: "user" | "assistant"; content: string }
 
@@ -62,13 +61,14 @@ export async function POST(req: NextRequest) {
         resolution:   "vetoed",
         triggerUsed:  "va que va",
         judgeReasons: verdict.reasons,
+        judgeModel:   verdict.model,
       });
       return NextResponse.json({
         action:  "vetoed",
         actaId:  acta.id,
         log: [
           "> [TRIGGER] llave de ejecución detectada: va que va",
-          "> [JUEZ] evaluando propuesta a temperatura 0...",
+          `> [JUEZ] evaluando a temperatura 0 — motor: ${verdict.model}`,
           "> [VETO] el juez de hierro rechazó el código:",
           ...verdict.reasons.map((r) => `>   ✗ ${r}`),
           "> [GITHUB] acción cancelada. el conflicto queda en esta sala.",
@@ -86,6 +86,7 @@ export async function POST(req: NextRequest) {
       resolution:   "merged",
       triggerUsed:  "va que va",
       judgeReasons: verdict.reasons,
+      judgeModel:   verdict.model,
     });
 
     return NextResponse.json({
@@ -93,7 +94,7 @@ export async function POST(req: NextRequest) {
       actaId: acta.id,
       log: [
         "> [TRIGGER] llave de ejecución detectada: va que va",
-        "> [JUEZ] propuesta aprobada por el juez de hierro.",
+        `> [JUEZ] propuesta aprobada — motor: ${verdict.model}`,
         `> [GITHUB] ${gh.message}${gh.url ? ` — ${gh.url}` : ""}`,
         `> [ACTA] sesión documentada (${acta.id}).`,
         "> [FIN] sesión cerrada.",
@@ -126,14 +127,6 @@ export async function POST(req: NextRequest) {
   }
 
   // ─── Debate normal con el Agente Ingeniero ─────────────────────────────────
-  const apiKey = getActiveKey();
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: "sin conexión a anthropic — conecta la cuenta desde el panel de administración" },
-      { status: 503 },
-    );
-  }
-
   if (await isOverBudget(projectId)) {
     return NextResponse.json(
       { error: `presupuesto mensual de tokens agotado para el proyecto ${projectId} — el cost governor bloqueó la llamada` },
@@ -141,48 +134,33 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Evidencia de la sesión: el hallazgo, los logs del motor y el diff en debate
+  // Evidencia de la sesión en TOON (ADR 11/06/2026 — formato denso para el modelo)
   const evidence = project
-    ? `\n\nEVIDENCIA DE LA SESIÓN ACTUAL:
-Hallazgo: ${project.statusLabel}
-Log de auditoría:\n${project.auditLogs.join("\n")}
-Diff propuesto en debate:\n--- código actual\n${project.codeDiff.old.join("\n")}\n+++ código propuesto\n${project.codeDiff.new.join("\n")}`
+    ? "\n\n" + toonBlock("EVIDENCIA_SESION", {
+        hallazgo: project.statusLabel,
+        log_auditoria: project.auditLogs,
+      }) + `\ndiff_en_debate:\n--- código actual\n${project.codeDiff.old.join("\n")}\n+++ código propuesto\n${project.codeDiff.new.join("\n")}`
     : "";
 
   const system = prompt + evidence + (await recallContext(projectId));
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type":      "application/json",
-      "x-api-key":         apiKey,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model:      MODEL,
-      max_tokens: 1024,
+  try {
+    const result = await callLLM({
       system,
       messages,
-    }),
-  });
+      maxTokens: 1024,
+      projectId,
+      agent: "ingeniero",
+    });
 
-  if (!res.ok) {
-    const errText = await res.text();
-    console.error("War Room — Anthropic error:", res.status, errText);
-    return NextResponse.json({ error: `el agente no respondió (${res.status})` }, { status: 502 });
+    return NextResponse.json({
+      action:   "reply",
+      reply:    result.text || "…",
+      model:    result.model,
+      provider: result.provider,
+    });
+  } catch (err) {
+    console.error("War Room — sin motores disponibles:", (err as Error).message);
+    return NextResponse.json({ error: "ningún motor de ia disponible — reintenta en unos minutos" }, { status: 503 });
   }
-
-  const data = await res.json();
-  await recordUsage({
-    projectId,
-    agent:        "ingeniero",
-    model:        MODEL,
-    inputTokens:  data?.usage?.input_tokens  ?? 0,
-    outputTokens: data?.usage?.output_tokens ?? 0,
-  });
-
-  return NextResponse.json({
-    action: "reply",
-    reply:  data?.content?.[0]?.text ?? "…",
-  });
 }

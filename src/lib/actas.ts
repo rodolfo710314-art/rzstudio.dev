@@ -25,6 +25,9 @@ export interface ActaInput {
   resolution:   ActaDoc["resolution"];
   triggerUsed:  string | null;
   judgeReasons?: string[];
+  /** Motores que actuaron en la sesión (trazabilidad del fallback, ADR 11/06/2026). */
+  engine?:      string;
+  judgeModel?:  string;
 }
 
 export async function createActa(input: ActaInput): Promise<ActaMeta> {
@@ -42,6 +45,8 @@ export async function createActa(input: ActaInput): Promise<ActaMeta> {
 - **fecha:** ${now.toISOString()}
 - **resolución:** ${input.resolution}
 - **llave de ejecución usada:** ${input.triggerUsed ?? "ninguna"}
+- **motor del agente:** ${input.engine ?? "no registrado"}
+- **motor del juez:** ${input.judgeModel ?? "no aplicó"}
 
 ## hallazgo original
 

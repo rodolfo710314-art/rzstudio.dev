@@ -1,9 +1,9 @@
 // El Juez de Hierro (doc §12.2) — IA evaluadora con temperatura 0 y veto absoluto.
-// Evalúa toda propuesta de código ANTES de cualquier merge. Si veta, la acción
-// de GitHub se cancela y el reporte llega al War Room.
+// Fase C: usa el cliente LLM unificado — primario Claude Haiku 4.5, respaldo Gemini.
+// El modelo que emitió cada veredicto queda auditado en el log y en las actas
+// (ADR 11/06/2026: los veredictos pueden diferir entre motores).
 
-import { getActiveKey } from "./runtime-key";
-import { recordUsage } from "./usage";
+import { callLLM } from "./llm";
 import { logAppend, logTail } from "./db";
 import type { RzManifest } from "./manifest";
 
@@ -13,6 +13,7 @@ const JUDGE_MODEL = "claude-haiku-4-5";
 export interface JudgeVerdict {
   approved: boolean;
   reasons:  string[];
+  model:    string;
   raw:      string;
 }
 
@@ -21,6 +22,7 @@ export interface JudgeLogEntry {
   projectId: string;
   approved:  boolean;
   reasons:   string[];
+  model?:    string;
 }
 
 const JUDGE_SYSTEM = `Eres el Juez de Hierro de RZStudio: un evaluador de código implacable con capacidad de veto absoluto. Tu única función es decidir si un cambio de código propuesto es seguro para producción.
@@ -40,54 +42,35 @@ export async function judgeCode(
   proposal:  string,
   manifest:  RzManifest | null,
 ): Promise<JudgeVerdict> {
-  const apiKey = getActiveKey();
-  if (!apiKey) {
-    return { approved: false, reasons: ["juez de hierro sin conexión a anthropic — veto por defecto"], raw: "" };
-  }
-
   const thresholds = manifest
     ? `\nUmbrales adicionales del proyecto: caída lighthouse máx ${manifest.iron_judge_thresholds.lighthouse_score_drop_max} pts, bundle +${manifest.iron_judge_thresholds.bundle_size_increase_max_kb}kb máx, ${manifest.iron_judge_thresholds.linting_errors_allowed} errores de linting permitidos.${projectId === "00" ? " ESTE ES EL META-LABORATORIO: tolerancia ABSOLUTA, cualquier duda mínima es veto." : ""}`
     : "";
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type":      "application/json",
-      "x-api-key":         apiKey,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model:       JUDGE_MODEL,
-      max_tokens:  512,
-      temperature: 0,
-      system:      JUDGE_SYSTEM + thresholds,
-      messages: [{
-        role:    "user",
-        content: `Evalúa esta propuesta de cambio para el proyecto "${projectId}":\n\n${proposal.slice(0, 8000)}`,
-      }],
-    }),
-  });
+  let text  = "";
+  let model = "ninguno";
 
-  if (!res.ok) {
+  try {
+    const result = await callLLM({
+      system:        JUDGE_SYSTEM + thresholds,
+      messages:      [{ role: "user", content: `Evalúa esta propuesta de cambio para el proyecto "${projectId}":\n\n${proposal.slice(0, 8000)}` }],
+      maxTokens:     512,
+      temperature:   0,
+      projectId,
+      agent:         "juez",
+      anthropicModel: JUDGE_MODEL,
+    });
+    text  = result.text;
+    model = result.model;
+  } catch (err) {
     const verdict: JudgeVerdict = {
       approved: false,
-      reasons:  [`el juez no pudo evaluar (anthropic ${res.status}) — veto por defecto`],
+      reasons:  [`el juez no pudo evaluar (${(err as Error).message}) — veto por defecto`],
+      model,
       raw:      "",
     };
     await logVerdict(projectId, verdict);
     return verdict;
   }
-
-  const data = await res.json();
-  const text: string = data?.content?.[0]?.text ?? "";
-
-  await recordUsage({
-    projectId,
-    agent:        "juez",
-    model:        JUDGE_MODEL,
-    inputTokens:  data?.usage?.input_tokens  ?? 0,
-    outputTokens: data?.usage?.output_tokens ?? 0,
-  });
 
   let verdict: JudgeVerdict;
   try {
@@ -98,10 +81,11 @@ export async function judgeCode(
     verdict = {
       approved: parsed.approved === true,
       reasons:  Array.isArray(parsed.reasons) ? parsed.reasons.map(String) : [],
+      model,
       raw:      text,
     };
   } catch {
-    verdict = { approved: false, reasons: ["respuesta del juez ilegible — veto por defecto"], raw: text.slice(0, 300) };
+    verdict = { approved: false, reasons: ["respuesta del juez ilegible — veto por defecto"], model, raw: text.slice(0, 300) };
   }
 
   await logVerdict(projectId, verdict);
@@ -114,6 +98,7 @@ async function logVerdict(projectId: string, v: JudgeVerdict): Promise<void> {
     projectId,
     approved: v.approved,
     reasons:  v.reasons,
+    model:    v.model,
   } satisfies JudgeLogEntry);
 }
 
