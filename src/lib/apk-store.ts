@@ -1,12 +1,10 @@
-import fs from "node:fs";
 import path from "node:path";
-import { randomUUID, createHmac } from "node:crypto";
+import { randomUUID } from "node:crypto";
+import { APK_DIR, dataFile, ensureDir, readJson, writeJson } from "./jstore";
 
-const DATA_DIR     = path.join(process.cwd(), "data");
-const TESTERS_FILE = path.join(DATA_DIR, "testers.json");
-const TOKENS_FILE  = path.join(DATA_DIR, "build-tokens.json");
-const META_FILE    = path.join(DATA_DIR, "apk-metadata.json");
-const APK_DIR      = path.join(process.cwd(), "public", "apks");
+const TESTERS_FILE = dataFile("testers.json");
+const TOKENS_FILE  = dataFile("build-tokens.json");
+const META_FILE    = dataFile("apk-metadata.json");
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -18,12 +16,16 @@ export interface BuildToken {
   testerId:             string;
   status:               TokenStatus;
   lifetimeDays:         number;
-  downloadUrlExpiresAt: string;       // ISO — 24h from creation
-  firstActivatedAt:     string | null; // set on first heartbeat
-  expiresAt:            string | null; // set on first heartbeat: firstActivatedAt + lifetimeDays
+  downloadUrlExpiresAt: string;        // ISO — 24h desde creación
+  firstActivatedAt:     string | null; // se fija en el primer heartbeat de la app
+  expiresAt:            string | null; // firstActivatedAt + lifetimeDays
   lastHeartbeatAt:      string | null;
   renewalCount:         number;
   createdAt:            string;
+  // Seguimiento de correos (cron de mantenimiento)
+  warningEmailSentAt?:  string | null;
+  followupEmailSentAt?: string | null;
+  expiredEmailSentAt?:  string | null;
 }
 
 export interface Tester {
@@ -44,8 +46,6 @@ export interface ApkMeta {
   uploadedAt:   string;
 }
 
-// ─── Defaults (from manifest spec) ───────────────────────────────────────────
-
 export const DEFAULT_TESTING = {
   apk_lifetime_days:           30,
   download_link_expiry_hours:  24,
@@ -55,22 +55,6 @@ export const DEFAULT_TESTING = {
   max_renewals_per_tester:     2,
   warning_days_before:         5,
 };
-
-// ─── File helpers ─────────────────────────────────────────────────────────────
-
-function ensureDir(dir: string) {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-}
-
-function readJson<T>(file: string, fallback: T): T {
-  try { return JSON.parse(fs.readFileSync(file, "utf-8")) as T; }
-  catch { return fallback; }
-}
-
-function writeJson(file: string, data: unknown) {
-  ensureDir(path.dirname(file));
-  fs.writeFileSync(file, JSON.stringify(data, null, 2));
-}
 
 // ─── APK Metadata ─────────────────────────────────────────────────────────────
 
@@ -93,10 +77,6 @@ export function deleteApkMeta(projectId: string) {
 
 export function getApkPath(projectId: string, filename: string): string {
   return path.join(APK_DIR, projectId, filename);
-}
-
-export function getApkPublicUrl(projectId: string, filename: string): string {
-  return `/apks/${projectId}/${filename}`;
 }
 
 export function ensureApkDir(projectId: string) {
@@ -142,7 +122,7 @@ export function listTesterTokens(testerId: string, projectId: string): BuildToke
   );
 }
 
-function saveToken(token: BuildToken) {
+export function saveToken(token: BuildToken) {
   const all = readJson<BuildToken[]>(TOKENS_FILE, []);
   writeJson(TOKENS_FILE, [...all.filter((t) => t.token !== token.token), token]);
 }
@@ -154,33 +134,103 @@ export function createBuildToken(
   expiryHours  = DEFAULT_TESTING.download_link_expiry_hours,
 ): BuildToken {
   const now = new Date();
-  const dlExpiry = new Date(now.getTime() + expiryHours * 60 * 60 * 1000);
-
   const bt: BuildToken = {
     token:                randomUUID(),
     projectId,
     testerId,
     status:               "pending",
     lifetimeDays,
-    downloadUrlExpiresAt: dlExpiry.toISOString(),
+    downloadUrlExpiresAt: new Date(now.getTime() + expiryHours * 3_600_000).toISOString(),
     firstActivatedAt:     null,
     expiresAt:            null,
     lastHeartbeatAt:      null,
     renewalCount:         0,
     createdAt:            now.toISOString(),
   };
-
   saveToken(bt);
   return bt;
 }
 
-/** Called by Android heartbeat — activates on first call, checks expiry thereafter. */
-export function validateToken(token: string): {
-  ok: boolean;
-  status: TokenStatus;
+// ─── Política de registro (cierra los loopholes de re-registro) ──────────────
+
+export type RegisterVerdict =
+  | { allowed: true; existing: BuildToken | null }
+  | { allowed: false; reason: "revoked" | "expired_no_renewals" | "expired_needs_admin" ; message: string };
+
+export function checkRegisterPolicy(testerId: string, projectId: string): RegisterVerdict {
+  const tokens = listTesterTokens(testerId, projectId);
+
+  // Tester revocado: bloqueado permanentemente hasta intervención del admin
+  if (tokens.some((t) => t.status === "revoked")) {
+    return {
+      allowed: false,
+      reason:  "revoked",
+      message: "tu acceso a este proyecto fue revocado por el administrador",
+    };
+  }
+
+  const existing = tokens.find((t) => t.status === "active" || t.status === "pending") ?? null;
+  if (existing) return { allowed: true, existing };
+
+  // Token expirado: no se emite uno nuevo — la renovación pasa por el admin
+  const expired = tokens.filter((t) => t.status === "expired");
+  if (expired.length > 0) {
+    const renewals = Math.max(...expired.map((t) => t.renewalCount));
+    if (renewals >= DEFAULT_TESTING.max_renewals_per_tester) {
+      return {
+        allowed: false,
+        reason:  "expired_no_renewals",
+        message: "alcanzaste el límite de renovaciones para este proyecto",
+      };
+    }
+    return {
+      allowed: false,
+      reason:  "expired_needs_admin",
+      message: "tu periodo de prueba expiró — responde el correo de seguimiento para solicitar renovación",
+    };
+  }
+
+  return { allowed: true, existing: null };
+}
+
+// ─── Estado del token ─────────────────────────────────────────────────────────
+
+export interface TokenCheck {
+  ok:            boolean;
+  status:        TokenStatus;
   daysRemaining: number | null;
-  message: string;
-} {
+  message:       string;
+}
+
+/** SOLO LECTURA — para la página de estado /activate. No muta nada. */
+export function getTokenStatus(token: string): TokenCheck {
+  const bt = getToken(token);
+  if (!bt) return { ok: false, status: "revoked", daysRemaining: null, message: "token no encontrado" };
+
+  if (bt.status === "revoked") {
+    return { ok: false, status: "revoked", daysRemaining: null, message: "acceso revocado por el administrador" };
+  }
+
+  if (bt.status === "pending") {
+    return {
+      ok: true, status: "pending", daysRemaining: bt.lifetimeDays,
+      message: `pendiente de activación — ${bt.lifetimeDays} días desde el primer arranque de la app`,
+    };
+  }
+
+  const now = Date.now();
+  if (bt.expiresAt && new Date(bt.expiresAt).getTime() < now) {
+    return { ok: false, status: "expired", daysRemaining: 0, message: "periodo de prueba expirado" };
+  }
+
+  const days = bt.expiresAt
+    ? Math.max(0, Math.ceil((new Date(bt.expiresAt).getTime() - now) / 86_400_000))
+    : null;
+  return { ok: true, status: bt.status, daysRemaining: days, message: days !== null ? `${days} días restantes` : "activo" };
+}
+
+/** MUTANTE — heartbeat de la app Android. Activa en el primer arranque. */
+export function validateToken(token: string): TokenCheck {
   const bt = getToken(token);
   if (!bt) return { ok: false, status: "revoked", daysRemaining: null, message: "token no encontrado" };
 
@@ -190,36 +240,29 @@ export function validateToken(token: string): {
 
   const now = new Date();
 
-  // First launch → activate
   if (bt.status === "pending" && !bt.firstActivatedAt) {
-    const expiresAt = new Date(now.getTime() + bt.lifetimeDays * 24 * 60 * 60 * 1000);
-    const updated: BuildToken = {
+    saveToken({
       ...bt,
       status:           "active",
       firstActivatedAt: now.toISOString(),
-      expiresAt:        expiresAt.toISOString(),
+      expiresAt:        new Date(now.getTime() + bt.lifetimeDays * 86_400_000).toISOString(),
       lastHeartbeatAt:  now.toISOString(),
-    };
-    saveToken(updated);
+    });
     return {
-      ok:            true,
-      status:        "active",
-      daysRemaining: bt.lifetimeDays,
-      message:       `entorno activado — ${bt.lifetimeDays} días de prueba`,
+      ok: true, status: "active", daysRemaining: bt.lifetimeDays,
+      message: `entorno activado — ${bt.lifetimeDays} días de prueba`,
     };
   }
 
-  // Check expiry
   if (bt.expiresAt && new Date(bt.expiresAt) < now) {
     if (bt.status !== "expired") saveToken({ ...bt, status: "expired" });
     return { ok: false, status: "expired", daysRemaining: 0, message: "periodo de prueba expirado" };
   }
 
-  // Active heartbeat
-  const msRemaining  = bt.expiresAt ? new Date(bt.expiresAt).getTime() - now.getTime() : 0;
-  const daysRemaining = Math.max(0, Math.ceil(msRemaining / (1000 * 60 * 60 * 24)));
+  const daysRemaining = bt.expiresAt
+    ? Math.max(0, Math.ceil((new Date(bt.expiresAt).getTime() - now.getTime()) / 86_400_000))
+    : 0;
   saveToken({ ...bt, lastHeartbeatAt: now.toISOString() });
-
   return { ok: true, status: "active", daysRemaining, message: `${daysRemaining} días restantes` };
 }
 
@@ -234,50 +277,25 @@ export function extendToken(token: string, days: number): BuildToken | null {
   const bt = getToken(token);
   if (!bt) return null;
 
-  let newExpiresAt: string;
-  if (bt.expiresAt) {
-    // Extend from current expiry date
-    newExpiresAt = new Date(
-      new Date(bt.expiresAt).getTime() + days * 24 * 60 * 60 * 1000
-    ).toISOString();
-  } else {
-    // Not activated yet — extend from now
-    newExpiresAt = new Date(
-      Date.now() + days * 24 * 60 * 60 * 1000
-    ).toISOString();
-  }
-
+  const base = bt.expiresAt ? new Date(bt.expiresAt).getTime() : Date.now();
   const updated: BuildToken = {
     ...bt,
-    status:       bt.status === "expired" ? "active" : bt.status,
-    expiresAt:    newExpiresAt,
-    renewalCount: bt.renewalCount + 1,
+    status:             bt.status === "expired" ? "active" : bt.status,
+    expiresAt:          new Date(Math.max(base, Date.now()) + days * 86_400_000).toISOString(),
+    renewalCount:       bt.renewalCount + 1,
+    warningEmailSentAt: null,
+    expiredEmailSentAt: null,
   };
   saveToken(updated);
   return updated;
 }
 
-// ─── Download URL validation ──────────────────────────────────────────────────
+// ─── Validación de la ventana de descarga (24h) ───────────────────────────────
 
-/** Checks if the 24h download window is still open */
 export function isDownloadValid(token: string): { valid: boolean; meta: ApkMeta | null } {
   const bt = getToken(token);
-  if (!bt) return { valid: false, meta: null };
-  if (bt.status === "revoked") return { valid: false, meta: null };
-
-  const expired = new Date(bt.downloadUrlExpiresAt) < new Date();
-  if (expired) return { valid: false, meta: null };
-
+  if (!bt || bt.status === "revoked") return { valid: false, meta: null };
+  if (new Date(bt.downloadUrlExpiresAt) < new Date()) return { valid: false, meta: null };
   const meta = getApkMeta(bt.projectId);
   return { valid: !!meta, meta };
-}
-
-// ─── Presigned download URL (HMAC, no DB) ────────────────────────────────────
-
-export function signDownloadToken(token: string, secret: string): string {
-  return createHmac("sha256", secret).update(token).digest("hex").slice(0, 16);
-}
-
-export function verifyDownloadSig(token: string, sig: string, secret: string): boolean {
-  return signDownloadToken(token, secret) === sig;
 }

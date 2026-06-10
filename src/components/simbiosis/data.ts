@@ -17,6 +17,37 @@ export interface Project {
 
 export const PROJECTS: Project[] = [
   {
+    id: '00',
+    name: 'rzstudio.dev — núcleo vivo',
+    description: 'tarjeta cero del meta-laboratorio: la propia plataforma auditándose a sí misma de forma recursiva, con blindaje de auto-destrucción y umbrales de veto absolutos.',
+    status: 'live',
+    statusLabel: 'Auto-auditoría recursiva del núcleo en curso...',
+    latency: '41ms',
+    tokens: '6.3k',
+    agent: 'rz-meta-v1',
+    platform: 'web',
+    auditLogs: [
+      '> [META] Manifiesto raíz .rz-manifest.json cargado.',
+      '> [SHIELD] Blindaje meta-laboratorio activo. Tolerancia: 0.',
+      '> [SCAN] Auditando rutas de admin y sesiones firmadas...',
+      '> [OK] Cero advertencias de linting en el último ciclo.',
+      '> [WATCH] Vigilancia del juez de hierro: implacable.',
+    ],
+    codeDiff: {
+      old: [
+        'export const config = {',
+        '  matcher: ["/admin/:path*"],',
+        '};',
+      ],
+      new: [
+        'export const config = {',
+        '  // protege dashboard, deja libre el login',
+        '  matcher: ["/admin/dashboard/:path*"],',
+        '};',
+      ],
+    },
+  },
+  {
     id: '01',
     name: 'agente autónomo de auditoría',
     description: 'motor de análisis de código que detecta y corrige deuda técnica en tiempo real usando razonamiento multi-paso.',

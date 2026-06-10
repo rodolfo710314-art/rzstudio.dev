@@ -4,11 +4,13 @@ import { useReducer } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { PROJECTS, Project } from './data';
 import { ProjectCard } from './ProjectCard';
+import { ProjectShowcase } from './ProjectShowcase';
 import { DiagnosticDrawer } from './DiagnosticDrawer';
 import { AndroidModal } from './AndroidModal';
 import { WarRoom } from './WarRoom';
 
-type OverlayMode = 'idle' | 'drawer' | 'android' | 'warroom';
+// Flujo (doc Bloque 3): tarjeta → showcase (expediente) → sandbox | binario.
+type OverlayMode = 'idle' | 'showcase' | 'drawer' | 'android' | 'warroom';
 
 interface OverlayState {
   mode: OverlayMode;
@@ -16,6 +18,7 @@ interface OverlayState {
 }
 
 type OverlayAction =
+  | { type: 'open_showcase'; project: Project }
   | { type: 'open_drawer'; project: Project }
   | { type: 'open_android'; project: Project }
   | { type: 'open_warroom'; project: Project }
@@ -23,10 +26,11 @@ type OverlayAction =
 
 function overlayReducer(_state: OverlayState, action: OverlayAction): OverlayState {
   switch (action.type) {
-    case 'open_drawer':  return { mode: 'drawer',  project: action.project };
-    case 'open_android': return { mode: 'android', project: action.project };
-    case 'open_warroom': return { mode: 'warroom', project: action.project };
-    case 'close':        return { mode: 'idle',    project: null };
+    case 'open_showcase': return { mode: 'showcase', project: action.project };
+    case 'open_drawer':   return { mode: 'drawer',   project: action.project };
+    case 'open_android':  return { mode: 'android',  project: action.project };
+    case 'open_warroom':  return { mode: 'warroom',  project: action.project };
+    case 'close':         return { mode: 'idle',     project: null };
   }
 }
 
@@ -40,11 +44,18 @@ export function SandboxGrid() {
           <ProjectCard
             key={project.id}
             project={project}
-            onClick={(p) => dispatch({ type: 'open_drawer', project: p })}
+            onClick={(p) => dispatch({ type: 'open_showcase', project: p })}
             onAndroidRequest={(p) => dispatch({ type: 'open_android', project: p })}
           />
         ))}
       </div>
+
+      <ProjectShowcase
+        project={overlay.mode === 'showcase' ? overlay.project : null}
+        onClose={() => dispatch({ type: 'close' })}
+        onSandbox={(p) => dispatch({ type: 'open_drawer', project: p })}
+        onAndroid={(p) => dispatch({ type: 'open_android', project: p })}
+      />
 
       <DiagnosticDrawer
         project={overlay.mode === 'drawer' ? overlay.project : null}

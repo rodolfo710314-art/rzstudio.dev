@@ -1,0 +1,82 @@
+{
+  "manifest_version": "1.0",
+  "project_id": "05",
+  "name": "orquestador multi-agente",
+  "stack": [
+    "TypeScript",
+    "Claude Sonnet 4.6",
+    "Claude Haiku 4.5",
+    "grafos de tareas"
+  ],
+  "critical_rules": [
+    "Todo plan requiere verificación cruzada entre agentes",
+    "Rollback automático ante divergencia de resultados"
+  ],
+  "authorized_skills": [
+    "planificar_tareas",
+    "verificar_coherencia",
+    "leer_logcat"
+  ],
+  "repo": null,
+  "testing": {
+    "apk_lifetime_days": 30,
+    "download_link_expiry_hours": 24,
+    "renewal_enabled": true,
+    "max_renewals_per_tester": 2
+  },
+  "iron_judge_thresholds": {
+    "lighthouse_score_drop_max": 5,
+    "bundle_size_increase_max_kb": 20,
+    "linting_errors_allowed": 0,
+    "linting_warnings_allowed": 3
+  },
+  "budget": {
+    "tokens_monthly": 500000,
+    "alert_threshold_pct": 80
+  },
+  "showcase": {
+    "tagline": "Ocho agentes, un plan, cero rollbacks",
+    "description": "Coordina redes de agentes especializados con planificación dinámica, rollback automático y verificación cruzada. Árboles de tareas de profundidad 5 ejecutados sin intervención.",
+    "type": "both",
+    "features": [
+      {
+        "icon": "Network",
+        "title": "Planificación dinámica",
+        "detail": "El plan se re-genera cuando un agente reporta bloqueo"
+      },
+      {
+        "icon": "ShieldCheck",
+        "title": "Verificación cruzada",
+        "detail": "Los agentes auditan los resultados de sus pares"
+      },
+      {
+        "icon": "RotateCcw",
+        "title": "Rollback automático",
+        "detail": "Divergencia detectada = estado restaurado sin daño"
+      }
+    ],
+    "benefits": [
+      "Tareas complejas sin supervisión por hora",
+      "100% de coherencia en verificación cruzada",
+      "Cliente Android para monitoreo remoto"
+    ],
+    "how_to_use": [
+      {
+        "step": 1,
+        "title": "Define el objetivo",
+        "description": "El sandbox acepta una meta de alto nivel"
+      },
+      {
+        "step": 2,
+        "title": "Observa el plan",
+        "description": "El árbol de tareas se construye en vivo"
+      },
+      {
+        "step": 3,
+        "title": "Sigue la ejecución",
+        "description": "Cada agente reporta su progreso en el panel"
+      }
+    ],
+    "screenshots": []
+  }
+}

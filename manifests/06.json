@@ -1,0 +1,80 @@
+{
+  "manifest_version": "1.0",
+  "project_id": "06",
+  "name": "interfaz cognitiva adaptativa",
+  "stack": [
+    "Kotlin",
+    "Jetpack Compose",
+    "TensorFlow Lite"
+  ],
+  "critical_rules": [
+    "La adaptación nunca mueve elementos durante una interacción activa",
+    "Datos de comportamiento solo en el dispositivo, nunca en servidor"
+  ],
+  "authorized_skills": [
+    "leer_logcat",
+    "analizar_consumo_bateria_apk"
+  ],
+  "repo": null,
+  "testing": {
+    "apk_lifetime_days": 30,
+    "download_link_expiry_hours": 24,
+    "renewal_enabled": true,
+    "max_renewals_per_tester": 2
+  },
+  "iron_judge_thresholds": {
+    "lighthouse_score_drop_max": 5,
+    "bundle_size_increase_max_kb": 20,
+    "linting_errors_allowed": 0,
+    "linting_warnings_allowed": 3
+  },
+  "budget": {
+    "tokens_monthly": 500000,
+    "alert_threshold_pct": 80
+  },
+  "showcase": {
+    "tagline": "Una UI que aprende cómo piensas",
+    "description": "Interfaz Android que reconfigura su layout, densidad de información y paleta en tiempo real según el modelo mental del usuario. El perfil cognitivo se calcula en el dispositivo.",
+    "type": "android",
+    "features": [
+      {
+        "icon": "Brain",
+        "title": "Perfil cognitivo local",
+        "detail": "TensorFlow Lite en el dispositivo — nada sale del teléfono"
+      },
+      {
+        "icon": "LayoutGrid",
+        "title": "Densidad adaptativa",
+        "detail": "+30% de información para perfiles expertos detectados"
+      },
+      {
+        "icon": "Eye",
+        "title": "Sin saltos visuales",
+        "detail": "La adaptación espera a que termines de interactuar"
+      }
+    ],
+    "benefits": [
+      "Onboarding que desaparece cuando ya no lo necesitas",
+      "Privacidad por diseño: procesamiento 100% local",
+      "Score de satisfacción 94/100 en pruebas beta"
+    ],
+    "how_to_use": [
+      {
+        "step": 1,
+        "title": "Solicita el APK",
+        "description": "Registra tu perfil para el entorno de pruebas cerrado"
+      },
+      {
+        "step": 2,
+        "title": "Úsala normal",
+        "description": "La app calibra tu perfil en los primeros minutos"
+      },
+      {
+        "step": 3,
+        "title": "Observa el cambio",
+        "description": "La densidad y el layout se ajustan a tu ritmo"
+      }
+    ],
+    "screenshots": []
+  }
+}

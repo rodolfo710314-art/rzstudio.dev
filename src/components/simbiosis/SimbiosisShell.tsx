@@ -81,7 +81,7 @@ export function SimbiosisShell() {
                 // sandbox interactivo beta
               </span>
               <p className="font-mono text-xs text-slate-700 lowercase">
-                6 proyectos de ia en ejecución. selecciona un proyecto para abrir el panel de diagnóstico.
+                tarjeta cero + 6 proyectos de ia en ejecución. selecciona un proyecto para abrir su expediente.
               </p>
             </div>
             <SandboxGrid />

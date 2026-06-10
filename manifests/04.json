@@ -1,0 +1,81 @@
+{
+  "manifest_version": "1.0",
+  "project_id": "04",
+  "name": "sistema rag de alta densidad",
+  "stack": [
+    "Python",
+    "Chroma",
+    "BM25",
+    "text-embedding-3-large"
+  ],
+  "critical_rules": [
+    "Latencia P99 < 100ms en recuperación",
+    "Nunca responder sin citar la fuente recuperada"
+  ],
+  "authorized_skills": [
+    "analizar_metricas",
+    "evaluar_relevancia"
+  ],
+  "repo": null,
+  "testing": {
+    "apk_lifetime_days": 30,
+    "download_link_expiry_hours": 24,
+    "renewal_enabled": true,
+    "max_renewals_per_tester": 2
+  },
+  "iron_judge_thresholds": {
+    "lighthouse_score_drop_max": 5,
+    "bundle_size_increase_max_kb": 20,
+    "linting_errors_allowed": 0,
+    "linting_warnings_allowed": 3
+  },
+  "budget": {
+    "tokens_monthly": 500000,
+    "alert_threshold_pct": 80
+  },
+  "showcase": {
+    "tagline": "Memoria semántica con latencia de 56ms",
+    "description": "Base de conocimiento vectorial con recuperación híbrida BM25 + embeddings. Fusiona búsqueda semántica y por palabras clave para máxima precisión con mínima latencia.",
+    "type": "web",
+    "features": [
+      {
+        "icon": "Database",
+        "title": "Recuperación híbrida",
+        "detail": "BM25 + cosine similarity fusionados con re-ranking"
+      },
+      {
+        "icon": "Gauge",
+        "title": "P99 de 56ms",
+        "detail": "Por debajo del target de 100ms en producción"
+      },
+      {
+        "icon": "FileText",
+        "title": "Citas verificables",
+        "detail": "Cada respuesta enlaza el documento fuente exacto"
+      }
+    ],
+    "benefits": [
+      "Respuestas fundamentadas, no alucinadas",
+      "Escala a millones de documentos",
+      "Indexación incremental sin downtime"
+    ],
+    "how_to_use": [
+      {
+        "step": 1,
+        "title": "Carga documentos",
+        "description": "El sandbox acepta texto de prueba para indexar"
+      },
+      {
+        "step": 2,
+        "title": "Lanza consultas",
+        "description": "Compara recuperación semántica vs híbrida"
+      },
+      {
+        "step": 3,
+        "title": "Mide la latencia",
+        "description": "El panel muestra P50/P99 de cada consulta"
+      }
+    ],
+    "screenshots": []
+  }
+}

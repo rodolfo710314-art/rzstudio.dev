@@ -4,14 +4,13 @@ import {
   getTesterByEmail,
   saveTester,
   createBuildToken,
-  listTesterTokens,
+  checkRegisterPolicy,
   DEFAULT_TESTING,
 } from "@/lib/apk-store";
 import { randomUUID } from "node:crypto";
 
 // POST /api/v1/testers/register
 // Body: { nombre, email, rol, projectId }
-// Returns: { token, downloadUrl, downloadExpiresAt, lifetimeDays, isNewTester }
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
 
@@ -41,7 +40,6 @@ export async function POST(req: NextRequest) {
 
   const ip = req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip") ?? undefined;
 
-  // Get or create tester
   let tester = getTesterByEmail(email);
   const isNewTester = !tester;
 
@@ -56,31 +54,32 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Check if tester already has an active/pending token for this project
-  const existingTokens = listTesterTokens(tester.id, projectId);
-  const activeToken = existingTokens.find(
-    (t) => t.status === "active" || t.status === "pending"
-  );
+  // Política de registro: bloquea testers revocados y expirados sin renovaciones.
+  // La renovación de un token expirado solo la otorga el admin (extend).
+  const policy = checkRegisterPolicy(tester.id, projectId);
+  if (!policy.allowed) {
+    return NextResponse.json({ error: policy.message, reason: policy.reason }, { status: 403 });
+  }
 
-  if (activeToken) {
-    const dlValid = new Date(activeToken.downloadUrlExpiresAt) > new Date();
+  if (policy.existing) {
+    const t = policy.existing;
+    const dlValid = new Date(t.downloadUrlExpiresAt) > new Date();
     return NextResponse.json({
-      token:              activeToken.token,
-      downloadUrl:        `/api/v1/build/download?t=${activeToken.token}`,
-      downloadExpiresAt:  activeToken.downloadUrlExpiresAt,
-      lifetimeDays:       activeToken.lifetimeDays,
-      status:             activeToken.status,
-      isNewTester:        false,
-      isExistingToken:    true,
-      downloadExpired:    !dlValid,
-      message:            dlValid
+      token:             t.token,
+      downloadUrl:       `/api/v1/build/download?t=${t.token}`,
+      downloadExpiresAt: t.downloadUrlExpiresAt,
+      lifetimeDays:      t.lifetimeDays,
+      status:            t.status,
+      isNewTester:       false,
+      isExistingToken:   true,
+      downloadExpired:   !dlValid,
+      message:           dlValid
         ? "ya tienes un token activo para este proyecto"
-        : "tu token existe pero el enlace de descarga expiró — el token sigue válido",
+        : "tu token sigue válido pero el enlace de descarga expiró — contacta al administrador para reinstalar",
     });
   }
 
-  // Create new build token
-  const buildToken = createBuildToken(
+  const bt = createBuildToken(
     projectId,
     tester.id,
     DEFAULT_TESTING.apk_lifetime_days,
@@ -88,11 +87,11 @@ export async function POST(req: NextRequest) {
   );
 
   return NextResponse.json({
-    token:             buildToken.token,
-    downloadUrl:       `/api/v1/build/download?t=${buildToken.token}`,
-    downloadExpiresAt: buildToken.downloadUrlExpiresAt,
-    lifetimeDays:      buildToken.lifetimeDays,
-    status:            buildToken.status,
+    token:             bt.token,
+    downloadUrl:       `/api/v1/build/download?t=${bt.token}`,
+    downloadExpiresAt: bt.downloadUrlExpiresAt,
+    lifetimeDays:      bt.lifetimeDays,
+    status:            bt.status,
     isNewTester,
     isExistingToken:   false,
     message:           `token creado — el enlace de descarga expira en ${DEFAULT_TESTING.download_link_expiry_hours}h`,

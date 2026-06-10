@@ -1,0 +1,82 @@
+{
+  "manifest_version": "1.0",
+  "project_id": "01",
+  "name": "agente autónomo de auditoría",
+  "stack": [
+    "TypeScript",
+    "Node.js",
+    "Claude Sonnet 4.6",
+    "AST parsers"
+  ],
+  "critical_rules": [
+    "Nunca modificar código sin generar diff revisable",
+    "Complejidad ciclomática máxima: 10 por función"
+  ],
+  "authorized_skills": [
+    "auditar_lighthouse",
+    "analizar_bundle_size",
+    "analizar_complejidad"
+  ],
+  "repo": null,
+  "testing": {
+    "apk_lifetime_days": 30,
+    "download_link_expiry_hours": 24,
+    "renewal_enabled": true,
+    "max_renewals_per_tester": 2
+  },
+  "iron_judge_thresholds": {
+    "lighthouse_score_drop_max": 5,
+    "bundle_size_increase_max_kb": 20,
+    "linting_errors_allowed": 0,
+    "linting_warnings_allowed": 3
+  },
+  "budget": {
+    "tokens_monthly": 500000,
+    "alert_threshold_pct": 80
+  },
+  "showcase": {
+    "tagline": "Detecta y corrige deuda técnica mientras duermes",
+    "description": "Motor de análisis estático potenciado por razonamiento multi-paso. Escanea el código fuente, identifica patrones de deuda técnica y genera refactors con justificación medible.",
+    "type": "web",
+    "features": [
+      {
+        "icon": "Search",
+        "title": "Análisis multi-paso",
+        "detail": "Razona sobre el árbol completo, no archivos aislados"
+      },
+      {
+        "icon": "GitPullRequest",
+        "title": "Refactors con diff",
+        "detail": "Cada propuesta llega como un diff revisable con métricas"
+      },
+      {
+        "icon": "TrendingDown",
+        "title": "Reducción de complejidad",
+        "detail": "Promedio de 67% menos complejidad ciclomática"
+      }
+    ],
+    "benefits": [
+      "Auditoría continua sin interrumpir al equipo",
+      "Cero cambios sin aprobación humana",
+      "Métricas de mejora en cada propuesta"
+    ],
+    "how_to_use": [
+      {
+        "step": 1,
+        "title": "Inicia el entorno",
+        "description": "Abre el sandbox interactivo desde la tarjeta"
+      },
+      {
+        "step": 2,
+        "title": "Observa los hallazgos",
+        "description": "El panel de diagnóstico muestra el análisis en vivo"
+      },
+      {
+        "step": 3,
+        "title": "Revisa el diff",
+        "description": "Evalúa la propuesta de refactor antes del veredicto"
+      }
+    ],
+    "screenshots": []
+  }
+}

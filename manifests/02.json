@@ -1,0 +1,82 @@
+{
+  "manifest_version": "1.0",
+  "project_id": "02",
+  "name": "motor de análisis predictivo",
+  "stack": [
+    "Python",
+    "LSTM",
+    "Next.js 16",
+    "Android/Kotlin"
+  ],
+  "critical_rules": [
+    "Predicciones con confidence < 80% no generan alertas",
+    "Latencia de inferencia máxima: 200ms"
+  ],
+  "authorized_skills": [
+    "analizar_metricas",
+    "leer_logcat",
+    "analizar_consumo_bateria_apk"
+  ],
+  "repo": null,
+  "testing": {
+    "apk_lifetime_days": 30,
+    "download_link_expiry_hours": 24,
+    "renewal_enabled": true,
+    "max_renewals_per_tester": 2
+  },
+  "iron_judge_thresholds": {
+    "lighthouse_score_drop_max": 5,
+    "bundle_size_increase_max_kb": 20,
+    "linting_errors_allowed": 0,
+    "linting_warnings_allowed": 3
+  },
+  "budget": {
+    "tokens_monthly": 500000,
+    "alert_threshold_pct": 80
+  },
+  "showcase": {
+    "tagline": "Ve los cuellos de botella antes de que existan",
+    "description": "Predice degradaciones de rendimiento usando series temporales y LLM. Captura métricas de latencia en producción y anticipa picos críticos con horas de ventaja.",
+    "type": "both",
+    "features": [
+      {
+        "icon": "Activity",
+        "title": "Series temporales 72h",
+        "detail": "Ventana de análisis continuo de métricas en producción"
+      },
+      {
+        "icon": "AlertTriangle",
+        "title": "Alertas anticipadas",
+        "detail": "Detección de picos críticos con horas de antelación"
+      },
+      {
+        "icon": "Smartphone",
+        "title": "Cliente Android nativo",
+        "detail": "Monitorea desde el teléfono con consumo mínimo de batería"
+      }
+    ],
+    "benefits": [
+      "Anticipa incidentes en lugar de reaccionar a ellos",
+      "91% de confidence promedio en predicciones",
+      "Disponible en web y Android"
+    ],
+    "how_to_use": [
+      {
+        "step": 1,
+        "title": "Obtén el binario",
+        "description": "Solicita el APK beta con tu token de 30 días"
+      },
+      {
+        "step": 2,
+        "title": "Activa el monitor",
+        "description": "El primer arranque inicia tu periodo de prueba"
+      },
+      {
+        "step": 3,
+        "title": "Reporta fricción",
+        "description": "Agita el teléfono para enviar feedback directo al agente"
+      }
+    ],
+    "screenshots": []
+  }
+}

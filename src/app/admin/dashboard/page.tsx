@@ -1,5 +1,6 @@
 import { AnthropicPanel } from "@/components/admin/AnthropicPanel";
 import { ApkManager } from "@/components/admin/ApkManager";
+import { OpsPanel } from "@/components/admin/OpsPanel";
 import { logoutAction } from "../actions";
 
 export default function AdminDashboard() {
@@ -45,6 +46,18 @@ export default function AdminDashboard() {
             </h2>
           </div>
           <ApkManager />
+        </section>
+
+        <section>
+          <div className="mb-4">
+            <span className="text-[10px] uppercase tracking-widest text-slate-400 font-mono">
+              // operaciones
+            </span>
+            <h2 className="text-sm font-mono text-white mt-1 lowercase">
+              integraciones, costos, actas y juez de hierro
+            </h2>
+          </div>
+          <OpsPanel />
         </section>
       </div>
     </div>

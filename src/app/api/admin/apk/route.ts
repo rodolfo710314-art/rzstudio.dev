@@ -1,20 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifySessionToken, COOKIE_NAME } from "@/lib/admin-session";
+import { verifyAdmin } from "@/lib/admin-auth";
 import {
   saveApkMeta, listApkMeta, deleteApkMeta,
-  getApkPath, getApkPublicUrl, ensureApkDir,
+  getApkPath, ensureApkDir,
   getApkMeta,
 } from "@/lib/apk-store";
 import fs from "node:fs";
-
-async function verifyAdmin(): Promise<boolean> {
-  const secret = process.env.ADMIN_SECRET;
-  if (!secret) return false;
-  const jar   = await cookies();
-  const token = jar.get(COOKIE_NAME)?.value;
-  return !!token && verifySessionToken(token, secret);
-}
 
 // GET /api/admin/apk — list all uploaded APKs
 export async function GET() {
@@ -70,11 +61,7 @@ export async function POST(req: NextRequest) {
 
   saveApkMeta(meta);
 
-  return NextResponse.json({
-    ok:         true,
-    publicUrl:  getApkPublicUrl(safeId, filename),
-    meta,
-  });
+  return NextResponse.json({ ok: true, meta });
 }
 
 // DELETE /api/admin/apk?projectId=xx

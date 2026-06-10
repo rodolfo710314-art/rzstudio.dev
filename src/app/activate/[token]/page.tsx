@@ -1,4 +1,4 @@
-import { validateToken, getToken, getApkMeta, isDownloadValid } from "@/lib/apk-store";
+import { getTokenStatus, getToken, getApkMeta, isDownloadValid } from "@/lib/apk-store";
 import { PROJECTS } from "@/components/simbiosis/data";
 import type { Metadata } from "next";
 
@@ -15,7 +15,7 @@ export default async function ActivatePage({ params }: Props) {
   const bt = getToken(token);
   if (!bt) return <ErrorScreen message="token no encontrado o inválido" />;
 
-  const result    = validateToken(token);
+  const result    = getTokenStatus(token); // solo lectura — visitar esta página NO activa el token
   const meta      = getApkMeta(bt.projectId);
   const { valid } = isDownloadValid(token);
   const project   = PROJECTS.find((p) => p.id === bt.projectId);

@@ -1,0 +1,42 @@
+{
+  "manifest_version": "1.0",
+  "project_id": "00",
+  "name": "rzstudio.dev — núcleo vivo",
+  "stack": ["Next.js 16", "React 19", "TypeScript", "Tailwind CSS", "Three.js / R3F", "Claude Sonnet 4.6"],
+  "critical_rules": [
+    "Mantener 60 FPS en el canvas 3D en hardware tier ESSENTIAL",
+    "Cero regresiones de accesibilidad WCAG 2.1 AA",
+    "El panel admin jamás se expone sin sesión válida",
+    "Las llaves de ejecución del War Room no se relajan nunca"
+  ],
+  "authorized_skills": ["auditar_lighthouse", "analizar_bundle_size", "revisar_a11y"],
+  "repo": null,
+  "iron_judge_thresholds": {
+    "lighthouse_score_drop_max": 0,
+    "bundle_size_increase_max_kb": 0,
+    "linting_errors_allowed": 0,
+    "linting_warnings_allowed": 0
+  },
+  "budget": { "tokens_monthly": 500000, "alert_threshold_pct": 80 },
+  "showcase": {
+    "tagline": "La plataforma que se audita y mejora a sí misma",
+    "description": "RZStudio.dev es el primer proyecto del laboratorio: un organismo digital que usa su propio sistema de agentes para detectar deuda técnica, proponer mejoras y desplegarlas bajo veredicto humano. Dogfooding arquitectónico en producción.",
+    "type": "web",
+    "features": [
+      { "icon": "Cpu", "title": "Inteligencia polimórfica", "detail": "La experiencia 3D se adapta al hardware del visitante en tiempo real" },
+      { "icon": "Shield", "title": "Juez de Hierro implacable", "detail": "Umbral de tolerancia cero: cualquier advertencia veta el cambio" },
+      { "icon": "GitBranch", "title": "Auto-auditoría recursiva", "detail": "El agente historiador vigila la propia plataforma que lo aloja" }
+    ],
+    "benefits": [
+      "Cada mejora pasa por CI frío, entorno desechable y veredicto humano",
+      "El blindaje meta impide que una optimización fallida tire la plataforma",
+      "Memoria a largo plazo: cada decisión queda en un acta consultable"
+    ],
+    "how_to_use": [
+      { "step": 1, "title": "Observa el ticker", "description": "La cabecera de la tarjeta muestra qué está haciendo el motor ahora mismo" },
+      { "step": 2, "title": "Abre el diagnóstico", "description": "Haz clic en la tarjeta para ver el flujo de conciencia del agente" },
+      { "step": 3, "title": "Sigue el debate", "description": "Las decisiones de merge se toman en el war room con llaves de ejecución" }
+    ],
+    "screenshots": []
+  }
+}

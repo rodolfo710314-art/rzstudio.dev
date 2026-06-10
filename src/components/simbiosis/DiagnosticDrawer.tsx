@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Zap, Cpu, Hash } from 'lucide-react';
 import { Project } from './data';
 import { DiffBlock } from './DiffBlock';
+import { TriggerConfirmModal } from './TriggerConfirmModal';
 
 interface DiagnosticDrawerProps {
   project: Project | null;
@@ -14,7 +15,7 @@ interface DiagnosticDrawerProps {
   onDebate: (project: Project) => void;
 }
 
-type Resolution = 'merged' | 'purged' | null;
+type Resolution = 'merged' | 'purged' | 'vetoed' | 'error' | null;
 
 // Skip log animation on re-open of a project already seen
 const seenLogs = new Set<string>();
@@ -28,6 +29,9 @@ export function DiagnosticDrawer({
 }: DiagnosticDrawerProps) {
   const [visibleLogs, setVisibleLogs] = useState<string[]>([]);
   const [resolution, setResolution] = useState<Resolution>(null);
+  const [resolutionDetail, setResolutionDetail] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState<'merge' | 'purge' | null>(null);
+  const [executing, setExecuting] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -56,6 +60,7 @@ export function DiagnosticDrawer({
     }
     setResolution(null);
 
+    setResolutionDetail(null);
     if (seenLogs.has(project.id)) {
       setVisibleLogs(project.auditLogs);
       return;
@@ -75,14 +80,52 @@ export function DiagnosticDrawer({
     return () => clearInterval(interval);
   }, [project?.id]);
 
-  function handleMerge(p: Project) {
-    setResolution('merged');
-    setTimeout(() => onMerge(p), 1400);
-  }
+  // Veredicto humano real (doc §9.3): pasa por el backend — el merge
+  // atraviesa el Juez de Hierro y todo queda documentado en un acta.
+  async function executeVerdict(p: Project, action: 'merge' | 'purge') {
+    setConfirming(null);
+    setExecuting(true);
+    setResolutionDetail(null);
 
-  function handlePurge(p: Project) {
-    setResolution('purged');
-    setTimeout(() => onPurge(p), 1400);
+    try {
+      const res = await fetch('/api/admin/pipeline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: p.id, action }),
+      });
+      const data = await res.json();
+
+      if (res.status === 401) {
+        setResolution('error');
+        setResolutionDetail(data.error ?? 'requiere sesión de administrador');
+        return;
+      }
+      if (res.status === 409 && data.vetoed) {
+        setResolution('vetoed');
+        setResolutionDetail((data.reasons as string[])?.join(' · ') ?? 'vetado por el juez de hierro');
+        return;
+      }
+      if (!res.ok) {
+        setResolution('error');
+        setResolutionDetail(data.error ?? `el servidor respondió ${res.status}`);
+        return;
+      }
+
+      if (action === 'merge') {
+        setResolution('merged');
+        setResolutionDetail(data.github ?? null);
+        setTimeout(() => onMerge(p), 1800);
+      } else {
+        setResolution('purged');
+        setResolutionDetail(data.github ?? null);
+        setTimeout(() => onPurge(p), 1800);
+      }
+    } catch {
+      setResolution('error');
+      setResolutionDetail('sin conexión con el núcleo');
+    } finally {
+      setExecuting(false);
+    }
   }
 
   const METRICS = project
@@ -209,12 +252,18 @@ export function DiagnosticDrawer({
                   className={`mx-5 mb-3 px-4 py-2.5 font-mono text-[9px] border ${
                     resolution === 'merged'
                       ? 'border-emerald-900 text-emerald-400/80 bg-emerald-950/20'
+                      : resolution === 'vetoed'
+                      ? 'border-amber-900/50 text-amber-400/80 bg-amber-950/10'
                       : 'border-red-900/40 text-red-400/70 bg-red-950/10'
                   }`}
                 >
-                  {resolution === 'merged'
-                    ? '✓ merge ejecutado. cambio registrado en historial.'
-                    : '✗ entorno purgado. estado restaurado a HEAD.'}
+                  {resolution === 'merged'   && '✓ merge ejecutado. acta de simbiosis generada.'}
+                  {resolution === 'purged'   && '✗ entorno purgado. acta de simbiosis generada.'}
+                  {resolution === 'vetoed'   && '⊘ vetado por el juez de hierro.'}
+                  {resolution === 'error'    && '✗ acción no ejecutada.'}
+                  {resolutionDetail && (
+                    <span className="block mt-1 text-slate-500 lowercase">{resolutionDetail}</span>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -222,27 +271,36 @@ export function DiagnosticDrawer({
             {/* Action buttons */}
             <div className="border-t border-slate-800 px-5 py-4 flex gap-2 flex-shrink-0">
               <button
-                onClick={() => handleMerge(project)}
-                disabled={!!resolution}
+                onClick={() => setConfirming('merge')}
+                disabled={resolution === 'merged' || resolution === 'purged' || executing}
                 className="flex-1 bg-copper text-black font-mono text-[8px] uppercase tracking-widest py-2.5 hover:bg-amber-600 transition-colors disabled:opacity-40"
               >
-                ejecutar merge
+                {executing ? 'ejecutando...' : 'ejecutar merge'}
               </button>
               <button
                 onClick={() => onDebate(project)}
-                disabled={!!resolution}
+                disabled={resolution === 'merged' || resolution === 'purged' || executing}
                 className="flex-1 border border-slate-700 text-slate-400 font-mono text-[8px] uppercase tracking-widest py-2.5 hover:border-slate-500 hover:text-slate-200 transition-colors disabled:opacity-40"
               >
                 rebatir solución
               </button>
               <button
-                onClick={() => handlePurge(project)}
-                disabled={!!resolution}
+                onClick={() => setConfirming('purge')}
+                disabled={resolution === 'merged' || resolution === 'purged' || executing}
                 className="font-mono text-[8px] uppercase tracking-wider text-red-900/50 hover:text-red-500/60 px-4 border border-transparent hover:border-red-900/20 transition-colors disabled:opacity-40"
               >
                 purgar
               </button>
             </div>
+
+            {/* Confirmación con countdown (segunda validación, doc Bloque 5) */}
+            <TriggerConfirmModal
+              open={confirming !== null}
+              action={confirming ?? 'merge'}
+              projectName={project.name}
+              onConfirm={() => confirming && executeVerdict(project, confirming)}
+              onCancel={() => setConfirming(null)}
+            />
           </motion.aside>
         </>
       )}
