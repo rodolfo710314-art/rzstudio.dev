@@ -18,10 +18,18 @@ export async function POST(req: NextRequest) {
   const email     = (body.email     as string | undefined)?.trim() ?? "";
   const rol       = (body.rol       as string | undefined)?.trim() ?? "";
   const projectId = (body.projectId as string | undefined)?.trim() ?? "";
+  const consent   = body.consent === true;
 
   if (!nombre || !email || !rol || !projectId) {
     return NextResponse.json(
       { error: "nombre, email, rol y projectId son requeridos" },
+      { status: 400 }
+    );
+  }
+
+  if (!consent) {
+    return NextResponse.json(
+      { error: "debes aceptar el aviso de privacidad y los términos del programa beta" },
       { status: 400 }
     );
   }

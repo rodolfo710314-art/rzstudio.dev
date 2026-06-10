@@ -51,6 +51,17 @@ export function Footer() {
           <ul className="space-y-2">
             <li><Link href="/contacto" className="hover:text-copper transition-colors">// contacto</Link></li>
             <li>
+              <a href="mailto:rodolfog@rzstudio.dev" className="hover:text-copper transition-colors">
+                // rodolfog@rzstudio.dev
+              </a>
+            </li>
+          </ul>
+
+          <div className="text-slate-400 font-bold mb-3 mt-6 uppercase tracking-wider">[legal]</div>
+          <ul className="space-y-2">
+            <li><Link href="/legal/privacidad" className="hover:text-copper transition-colors">// aviso de privacidad</Link></li>
+            <li><Link href="/legal/terminos" className="hover:text-copper transition-colors">// términos beta</Link></li>
+            <li>
               <span className="text-slate-600">© {new Date().getFullYear()} rzstudio //</span>
             </li>
             <li>

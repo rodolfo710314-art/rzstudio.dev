@@ -4,11 +4,12 @@ Checklist derivado del análisis de riesgos del 10/06/2026.
 **Regla de trabajo:** al planear cualquier modificación del sistema, revisar esta lista
 e incluir al menos un pendiente relacionado con el área que se toca.
 
-## ✅ Resueltos (10/06/2026)
+## ✅ Resueltos
 
-- [x] **#1** Rate limit por IP en `/api/chat` (10 msg/min) + registro en Cost Governor + tope diario `RZ_CHAT_DAILY_TOKEN_CAP` (default 150k tokens/día → degrada a modo demo)
-- [x] **#3** Anti fuerza bruta en login admin (5 intentos/min por IP)
-- [x] **#4** Ruta de diagnóstico `/api/admin/env-check` eliminada
+- [x] **#1** Rate limit por IP en `/api/chat` (10 msg/min) + registro en Cost Governor + tope diario `RZ_CHAT_DAILY_TOKEN_CAP` (default 150k tokens/día → degrada a modo demo) — 10/06/2026
+- [x] **#3** Anti fuerza bruta en login admin (5 intentos/min por IP) — 10/06/2026
+- [x] **#4** Ruta de diagnóstico `/api/admin/env-check` eliminada — 10/06/2026
+- [x] **#9** Consentimiento de datos: checkbox + enlaces a `/legal/privacidad` y `/legal/terminos` en AndroidModal y formulario de contacto, validado también server-side — 11/06/2026 (textos legales en borrador, pendiente VoBo de abogado)
 
 ## 🔴 Pendientes — alta prioridad
 
@@ -32,8 +33,8 @@ e incluir al menos un pendiente relacionado con el área que se toca.
 - [ ] **#8 GitHub: el agente solo debe ABRIR PRs, no fusionarlos** — mientras no haya branch
   protection con revisión humana obligatoria en el repo destino, cambiar `mergeAiPr` para que
   el "va que va" apruebe el PR pero el merge final sea manual en GitHub.
-- [ ] **#9 Consentimiento de datos en captura de leads** — checkbox + aviso de privacidad en
-  `AndroidModal` (se guarda nombre, email, rol e IP — obligación GDPR/LFPDPPP).
+- [ ] **#9b VoBo legal** — los textos de `/legal/*` son borradores base; sustituirlos por la
+  redacción validada por el abogado (insumos en `legal/RESUMEN_DATOS_PARA_ABOGADO.md`).
 
 ## 🟡 Pendientes — baja prioridad
 

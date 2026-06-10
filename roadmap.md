@@ -68,6 +68,11 @@ Este documento detalla el progreso y las fases de implementación del sitio web 
 | 12/05/2026 | Inteligencia Polimórfica | Sustituye al fallback tradicional para ofrecer una experiencia adaptada al hardware específico del usuario, demostrando superioridad técnica. |
 | 12/05/2026 | TDD para IA | Garantizar que las respuestas del chatbot sean consistentes y seguras mediante pruebas de evaluación de prompts. |
 | 12/05/2026 | Integración CRM | Centralizar la gestión de leads para escalar el negocio post-lanzamiento. |
+| 11/06/2026 | **Firestore** como base de datos (sobre Supabase) | Misma cuenta GCP que Cloud Run (cero credenciales externas), migración 1:1 desde los stores JSON de documentos, búsqueda vectorial nativa suficiente para el RAG de actas. Reversible gracias a la abstracción `jstore.ts`. |
+| 11/06/2026 | Orden de implementación A→B→C→D | A: contacto/legales · B: Firestore+GCS · C: LLM unificado con fallback Gemini + TOON · D: UI/accesibilidad. |
+| 11/06/2026 | Teléfono de contacto suprimido | Sin disponibilidad de call center; se reincorpora con call center y/o VoBo del abogado. |
+| 11/06/2026 | Juez de Hierro con fallback a Gemini | El acta registra qué modelo emitió cada veredicto para trazabilidad (los veredictos pueden diferir entre modelos). |
+| 11/06/2026 | TOON para inyección de contexto a agentes | El formato lo decide el consumidor: JSON para código, TOON/tablas para LLMs. El Cost Governor medirá el ahorro real antes/después. |
 
 ---
 

@@ -33,6 +33,7 @@ const ROLES = [
 export function AndroidModal({ project, onClose }: AndroidModalProps) {
   const [step,       setStep]       = useState<Step>("check");
   const [form,       setForm]       = useState({ nombre: "", email: "", rol: "" });
+  const [consent,    setConsent]    = useState(false);
   const [error,      setError]      = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [result,     setResult]     = useState<TokenResult | null>(null);
@@ -52,6 +53,7 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
     if (!project) return;
     setStep("check");
     setForm({ nombre: "", email: "", rol: "" });
+    setConsent(false);
     setError(null);
     setResult(null);
     setTimeout(() => closeRef.current?.focus(), 50);
@@ -81,7 +83,7 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
       const res  = await fetch("/api/v1/testers/register", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ ...form, projectId: project.id }),
+        body:    JSON.stringify({ ...form, projectId: project.id, consent }),
       });
       const data = await res.json();
 
@@ -200,9 +202,31 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
                     </div>
                   </Field>
 
+                  {/* Consentimiento de datos + términos beta (riesgo #9) */}
+                  <label className="flex items-start gap-2.5 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      required
+                      checked={consent}
+                      onChange={(e) => setConsent(e.target.checked)}
+                      className="mt-0.5 w-3 h-3 accent-[#C97352] shrink-0"
+                    />
+                    <span className="font-mono text-[10px] text-slate-600 leading-relaxed lowercase group-hover:text-slate-500 transition-colors">
+                      acepto el{" "}
+                      <a href="/legal/privacidad" target="_blank" className="text-[#C97352] underline underline-offset-2">
+                        aviso de privacidad
+                      </a>{" "}
+                      y los{" "}
+                      <a href="/legal/terminos" target="_blank" className="text-[#C97352] underline underline-offset-2">
+                        términos del programa beta
+                      </a>
+                      , incluido instalar software experimental bajo mi propio riesgo.
+                    </span>
+                  </label>
+
                   {error && <p className="font-mono text-xs text-red-400 lowercase">✗ {error}</p>}
 
-                  <button type="submit" disabled={submitting || !form.rol}
+                  <button type="submit" disabled={submitting || !form.rol || !consent}
                     className="w-full bg-[#C97352] text-black font-mono text-[9px] uppercase tracking-widest py-2.5
                                hover:bg-amber-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                     {submitting ? "> generando token de acceso..." : "obtener token de acceso"}

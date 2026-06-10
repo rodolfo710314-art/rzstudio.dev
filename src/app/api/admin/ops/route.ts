@@ -11,6 +11,8 @@ import { getMonthlyUsage } from "@/lib/usage";
 import { getJudgeLog } from "@/lib/iron-judge";
 import { listActas, readActa } from "@/lib/actas";
 import { listManifests } from "@/lib/manifest";
+import { dataFile, readJson } from "@/lib/jstore";
+import type { ContactLead } from "@/app/api/contact/route";
 
 export async function GET(req: NextRequest) {
   if (!(await verifyAdmin())) {
@@ -25,6 +27,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ id: actaId, markdown: md });
   }
 
+  const contactLeads = readJson<ContactLead[]>(dataFile("contact-leads.json"), [])
+    .slice(-50)
+    .reverse()
+    .map(({ id, nombre, email, mensaje, emailed, createdAt }) => ({
+      id, nombre, email, emailed, createdAt,
+      mensaje: mensaje.slice(0, 300),
+    }));
+
   return NextResponse.json({
     integrations: {
       anthropic:   !!getActiveKey(),
@@ -33,9 +43,10 @@ export async function GET(req: NextRequest) {
       cron:        !!process.env.CRON_SECRET,
       persistence: isPersistentStorage(),
     },
-    usage:     getMonthlyUsage(),
-    actas:     listActas().slice(0, 30),
-    judgeLog:  getJudgeLog(30),
-    manifests: listManifests().map((m) => ({ project_id: m.project_id, name: m.name })),
+    usage:        getMonthlyUsage(),
+    actas:        listActas().slice(0, 30),
+    judgeLog:     getJudgeLog(30),
+    contactLeads,
+    manifests:    listManifests().map((m) => ({ project_id: m.project_id, name: m.name })),
   });
 }

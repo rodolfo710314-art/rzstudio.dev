@@ -33,6 +33,14 @@ interface OpsData {
     approved:  boolean;
     reasons:   string[];
   }[];
+  contactLeads?: {
+    id:        string;
+    nombre:    string;
+    email:     string;
+    mensaje:   string;
+    emailed:   boolean;
+    createdAt: string;
+  }[];
 }
 
 const INTEGRATION_LABELS: Record<string, { name: string; hint: string }> = {
@@ -171,6 +179,34 @@ export function OpsPanel() {
                     </span>
                     <span className="text-[9px] font-mono text-slate-600">{a.id} →</span>
                   </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Prospectos del formulario de contacto */}
+          <div className="p-5">
+            <span className="text-[9px] uppercase tracking-widest font-mono text-slate-600 block mb-3">
+              // prospectos — formulario de contacto
+            </span>
+            {!data.contactLeads || data.contactLeads.length === 0 ? (
+              <p className="text-[10px] font-mono text-slate-700 lowercase">sin mensajes recibidos aún</p>
+            ) : (
+              <div className="space-y-3">
+                {data.contactLeads.map((l) => (
+                  <div key={l.id} className="border-l border-[#1D140F] pl-3">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="text-[10px] font-mono text-white lowercase">{l.nombre}</span>
+                      <a href={`mailto:${l.email}`} className="text-[10px] font-mono text-[#C97352] hover:underline">{l.email}</a>
+                      <span className={`text-[9px] font-mono ${l.emailed ? "text-emerald-400" : "text-amber-400"}`}>
+                        {l.emailed ? "✓ reenviado por correo" : "⚠ solo guardado (resend inactivo)"}
+                      </span>
+                      <span className="text-[9px] font-mono text-slate-700 ml-auto">
+                        {new Date(l.createdAt).toLocaleString("es-MX")}
+                      </span>
+                    </div>
+                    <p className="text-[10px] font-mono text-slate-500 lowercase leading-relaxed mt-1">{l.mensaje}</p>
+                  </div>
                 ))}
               </div>
             )}
