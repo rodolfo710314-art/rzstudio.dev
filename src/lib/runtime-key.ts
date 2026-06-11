@@ -1,18 +1,15 @@
 // Almacén de la API key de Anthropic conectada desde el panel admin.
-// Fase B-bis: persiste en Firestore (colección `config`, doc `anthropic`) para
-// sobrevivir reinicios/redeploys/nuevas instancias de Cloud Run.
+// Persiste SIEMPRE en Firestore (independiente de RZ_STORAGE) para sobrevivir
+// reinicios y redeploys de Cloud Run. El driver local (json) es efímero y no
+// puede ser la fuente de verdad de una credencial de producción.
 //
 // Orden de resolución: cache en memoria → Firestore → variable de entorno.
-// El cache evita pegarle a Firestore en cada request; Firestore es la fuente
-// de verdad de lo conectado desde el panel; la env var es el respaldo inicial.
 
-import { docGet, docSet } from "./db";
+import { fire } from "./db";
 
 const CACHE_KEY = "__rz_anthropic_key__";
-const COL = "config";
-const DOC = "anthropic";
-
-interface KeyDoc { id: string; key: string; updatedAt: string }
+const COL       = "config";
+const DOC       = "anthropic";
 
 function cache(): { key?: string; loaded?: boolean } {
   const g = global as Record<string, unknown>;
@@ -26,15 +23,15 @@ export async function getActiveKey(): Promise<string | undefined> {
   if (c.key) return c.key;
 
   if (!c.loaded) {
+    c.loaded = true;
     try {
-      const doc = await docGet<KeyDoc>(COL, DOC);
-      c.loaded = true;
-      if (doc?.key) {
-        c.key = doc.key;
-        return doc.key;
+      const snap = await fire().collection(COL).doc(DOC).get();
+      if (snap.exists && snap.data()?.key) {
+        c.key = snap.data()!.key as string;
+        return c.key;
       }
     } catch {
-      // Firestore no disponible — caemos a la env var
+      // Firestore no disponible (sin roles/datastore.user) — caemos a env var
     }
   }
 
@@ -45,7 +42,12 @@ export async function getActiveKey(): Promise<string | undefined> {
 export async function setActiveKey(key: string): Promise<void> {
   cache().key = key;
   cache().loaded = true;
-  await docSet<KeyDoc>(COL, { id: DOC, key, updatedAt: new Date().toISOString() });
+  try {
+    await fire().collection(COL).doc(DOC).set({ key, updatedAt: new Date().toISOString() });
+  } catch (e) {
+    // Sin Firestore la key vive solo en memoria hasta el próximo restart
+    console.warn("[runtime-key] Firestore no disponible — key solo en RAM:", (e as Error).message);
+  }
 }
 
 export function maskKey(key: string): string {
