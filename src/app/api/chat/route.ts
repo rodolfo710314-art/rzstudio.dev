@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     // Sin Anthropic Y sin posibilidad de fallback no hay motor; el cliente
     // unificado intenta Gemini si Anthropic falla, así que solo verificamos el tope.
-    if (!getActiveKey() && !process.env.GEMINI_MODEL) {
+    if (!(await getActiveKey()) && !process.env.GEMINI_MODEL) {
       return NextResponse.json({
         reply: 'hola. soy el núcleo de rzstudio en modo demostración. configura la anthropic_api_key para habilitar mi cerebro completo.',
         mode: 'demo',

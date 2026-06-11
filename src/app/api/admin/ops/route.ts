@@ -27,11 +27,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ id: actaId, markdown: md });
   }
 
-  const [usage, actas, judgeLog, leads] = await Promise.all([
+  const [usage, actas, judgeLog, leads, anthropicKey] = await Promise.all([
     getMonthlyUsage(),
     listActas(),
     getJudgeLog(30),
     colList<ContactLead>("contact-leads"),
+    getActiveKey(),
   ]);
 
   const contactLeads = leads
@@ -44,7 +45,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     integrations: {
-      anthropic:   !!getActiveKey(),
+      anthropic:   !!anthropicKey,
       email:       emailConfigured(),
       github:      githubConfigured(),
       cron:        !!process.env.CRON_SECRET,

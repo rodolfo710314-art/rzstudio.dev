@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { COOKIE_NAME, verifySessionToken } from "@/lib/admin-session";
-import { setActiveKey, persistKeyToEnvFile, maskKey } from "@/lib/runtime-key";
+import { setActiveKey, maskKey } from "@/lib/runtime-key";
 
 const KEY_PATTERN = /^sk-ant-/;
 
@@ -48,9 +48,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Key is valid — activate and persist
-  setActiveKey(cleanKey);
-  persistKeyToEnvFile(cleanKey);
+  // Key is valid — activate and persist (Firestore)
+  await setActiveKey(cleanKey);
 
   const rpm = parseInt(testRes.headers.get("x-ratelimit-limit-requests") ?? "0", 10);
   const tpm = parseInt(testRes.headers.get("x-ratelimit-limit-tokens")   ?? "0", 10);

@@ -50,7 +50,7 @@ function auth(): GoogleAuth {
 // ─── Anthropic (primario) ─────────────────────────────────────────────────────
 
 async function callAnthropic(req: LlmRequest): Promise<LlmResult> {
-  const apiKey = getActiveKey();
+  const apiKey = await getActiveKey();
   if (!apiKey) throw new Error("sin api key de anthropic");
 
   const model = req.anthropicModel ?? ANTHROPIC_MODEL;

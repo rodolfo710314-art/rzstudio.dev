@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { verifySessionToken, COOKIE_NAME } from "@/lib/admin-session";
-import { setActiveKey, persistKeyToEnvFile, maskKey } from "@/lib/runtime-key";
+import { setActiveKey, maskKey } from "@/lib/runtime-key";
 
 export interface KeyUpdateState {
   ok?: boolean;
@@ -57,8 +57,7 @@ export async function updateAnthropicKey(
     return { error: `anthropic respondió con error ${testRes.status}` };
   }
 
-  setActiveKey(key);
-  persistKeyToEnvFile(key);
+  await setActiveKey(key);
 
   const rpm = parseInt(testRes.headers.get("x-ratelimit-limit-requests") ?? "0", 10);
   const tpm = parseInt(testRes.headers.get("x-ratelimit-limit-tokens")   ?? "0", 10);

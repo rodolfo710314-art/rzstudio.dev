@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "no autorizado" }, { status: 401 });
   }
 
-  const key = getActiveKey();
+  const key = await getActiveKey();
   if (!key) {
     return NextResponse.json({ connected: false, error: "sin api key configurada" });
   }

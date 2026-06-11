@@ -1,46 +1,51 @@
-// Runtime Anthropic key store — survives hot-reloads, resets on server restart.
-// Falls back to ANTHROPIC_API_KEY env var if no runtime override is set.
-// Only usable in Node.js runtime (API routes), not Edge middleware.
+// Almacén de la API key de Anthropic conectada desde el panel admin.
+// Fase B-bis: persiste en Firestore (colección `config`, doc `anthropic`) para
+// sobrevivir reinicios/redeploys/nuevas instancias de Cloud Run.
+//
+// Orden de resolución: cache en memoria → Firestore → variable de entorno.
+// El cache evita pegarle a Firestore en cada request; Firestore es la fuente
+// de verdad de lo conectado desde el panel; la env var es el respaldo inicial.
 
-import fs from "node:fs";
-import path from "node:path";
+import { docGet, docSet } from "./db";
 
-const STORE_KEY = "__rz_anthropic_key__";
+const CACHE_KEY = "__rz_anthropic_key__";
+const COL = "config";
+const DOC = "anthropic";
 
-function globalStore(): { key?: string } {
+interface KeyDoc { id: string; key: string; updatedAt: string }
+
+function cache(): { key?: string; loaded?: boolean } {
   const g = global as Record<string, unknown>;
-  if (!g[STORE_KEY]) g[STORE_KEY] = {};
-  return g[STORE_KEY] as { key?: string };
+  if (!g[CACHE_KEY]) g[CACHE_KEY] = {};
+  return g[CACHE_KEY] as { key?: string; loaded?: boolean };
 }
 
-export function getActiveKey(): string | undefined {
-  return globalStore().key ?? process.env.ANTHROPIC_API_KEY;
-}
+/** Lee la key activa: memoria → Firestore → env var. Cachea lo que encuentre. */
+export async function getActiveKey(): Promise<string | undefined> {
+  const c = cache();
+  if (c.key) return c.key;
 
-export function setActiveKey(key: string): void {
-  globalStore().key = key;
-}
-
-// Persist to .env.local so the key survives server restarts.
-// Silently skips if the file is not writable (e.g. read-only production filesystem).
-export function persistKeyToEnvFile(key: string): void {
-  const envPath = path.join(process.cwd(), ".env.local");
-  try {
-    let content = "";
-    if (fs.existsSync(envPath)) {
-      content = fs.readFileSync(envPath, "utf-8");
+  if (!c.loaded) {
+    try {
+      const doc = await docGet<KeyDoc>(COL, DOC);
+      c.loaded = true;
+      if (doc?.key) {
+        c.key = doc.key;
+        return doc.key;
+      }
+    } catch {
+      // Firestore no disponible — caemos a la env var
     }
-    const lines = content.split("\n").filter(Boolean);
-    const idx = lines.findIndex((l) => l.startsWith("ANTHROPIC_API_KEY="));
-    if (idx >= 0) {
-      lines[idx] = `ANTHROPIC_API_KEY=${key}`;
-    } else {
-      lines.push(`ANTHROPIC_API_KEY=${key}`);
-    }
-    fs.writeFileSync(envPath, lines.join("\n") + "\n", "utf-8");
-  } catch {
-    // Read-only filesystem (Vercel, etc.) — key is stored in memory only for this session.
   }
+
+  return process.env.ANTHROPIC_API_KEY;
+}
+
+/** Persiste la key en Firestore + cache. Sobrevive reinicios de Cloud Run. */
+export async function setActiveKey(key: string): Promise<void> {
+  cache().key = key;
+  cache().loaded = true;
+  await docSet<KeyDoc>(COL, { id: DOC, key, updatedAt: new Date().toISOString() });
 }
 
 export function maskKey(key: string): string {
