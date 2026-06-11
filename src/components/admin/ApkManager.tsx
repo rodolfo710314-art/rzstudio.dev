@@ -48,8 +48,9 @@ export function ApkManager() {
   const [uploadFile, setUploadFile] = useState<{ name: string; size: number } | null>(null);
   const [progress,  setProgress]  = useState<number>(0);
   const [deleting,  setDeleting]  = useState<string | null>(null);
-  const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
+  const fileInputs  = useRef<Record<string, HTMLInputElement | null>>({});
   const versionRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const abortRef    = useRef<AbortController | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -71,16 +72,21 @@ export function ApkManager() {
   // XHR con send(File) no dispara onprogress hasta que Chrome termina de leer
   // el archivo completo en memoria (cuelga en 0% para archivos de >1 GB).
   // Fetch con body:File envía en streaming y retorna cuando GCS confirma 200.
-  async function fetchPut(url: string, file: File, onProgress: (pct: number) => void): Promise<void> {
+  async function fetchPut(url: string, file: File, onProgress: (pct: number) => void, signal: AbortSignal): Promise<void> {
     const res = await fetch(url, {
       method:  "PUT",
       headers: { "Content-Type": "application/vnd.android.package-archive" },
       body:    file,
-      signal:  AbortSignal.timeout(90 * 60 * 1000), // 90 min máximo
+      signal,
     });
     if (res.ok) { onProgress(100); return; }
     const body = await res.text().catch(() => "");
     throw new Error(`gcs ${res.status}: ${body.slice(0, 200) || res.statusText || "sin detalle"}`);
+  }
+
+  function handleCancel() {
+    abortRef.current?.abort();
+    abortRef.current = null;
   }
 
   async function handleUpload(projectId: string, directFile?: File) {
@@ -92,12 +98,16 @@ export function ApkManager() {
     setUploading(projectId); setMsg(null); setProgress(0);
     setUploadFile({ name: file.name, size: file.size });
 
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
     try {
       // Paso 1: pedir la sesión de subida
       const signRes = await fetch("/api/admin/apk/sign", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ projectId, version, filename: file.name }),
+        signal: ctrl.signal,
       });
       const sign = await signRes.json();
       if (signRes.status === 401) {
@@ -111,7 +121,7 @@ export function ApkManager() {
 
       if (sign.mode === "gcs") {
         // Paso 2: el archivo va DIRECTO al bucket (no pasa por el servidor)
-        await fetchPut(sign.uploadUrl, file, setProgress);
+        await fetchPut(sign.uploadUrl, file, setProgress, ctrl.signal);
 
         // Paso 3: confirmar — el servidor verifica el objeto y registra la metadata
         const confRes = await fetch("/api/admin/apk/confirm", {
@@ -148,8 +158,13 @@ export function ApkManager() {
       if (input) input.value = "";
       await refresh();
     } catch (err) {
-      setMsg({ ok: false, text: (err as Error).message ?? "error de red" });
+      if ((err as Error).name === "AbortError") {
+        setMsg(null); // cancelación intencional — sin mensaje de error
+      } else {
+        setMsg({ ok: false, text: (err as Error).message ?? "error de red" });
+      }
     } finally {
+      abortRef.current = null;
       setUploading(null);
       setUploadFile(null);
       setProgress(0);
@@ -229,6 +244,7 @@ export function ApkManager() {
               progress={uploading === project.id ? progress : null}
               uploadFile={uploading === project.id ? uploadFile : null}
               onUpload={(f) => handleUpload(project.id, f)}
+              onCancel={handleCancel}
               onDeleteApk={() => handleDeleteApk(project.id)}
               onRevoke={handleRevoke}
               onExtend={handleExtend}
@@ -252,6 +268,7 @@ interface ApkRowProps {
   progress:     number | null;
   uploadFile:   { name: string; size: number } | null;
   onUpload:     (file?: File) => void;
+  onCancel:     () => void;
   onDeleteApk:  () => void;
   onRevoke:     (token: string) => void;
   onExtend:     (token: string, days: number) => void;
@@ -259,7 +276,7 @@ interface ApkRowProps {
   versionRef:   (el: HTMLInputElement | null) => void;
 }
 
-function ApkRow({ project, meta, tokens, busy, progress, uploadFile, onUpload, onDeleteApk, onRevoke, onExtend, fileInputRef, versionRef }: ApkRowProps) {
+function ApkRow({ project, meta, tokens, busy, progress, uploadFile, onUpload, onCancel, onDeleteApk, onRevoke, onExtend, fileInputRef, versionRef }: ApkRowProps) {
   // Sin APK → el formulario de carga queda visible de inmediato (sin clics extra)
   const [showUpload, setShowUpload] = useState(!meta);
   const [showTokens, setShowTokens] = useState(false);
@@ -387,9 +404,19 @@ function ApkRow({ project, meta, tokens, busy, progress, uploadFile, onUpload, o
                   : <div className="h-full bg-[#C97352]/40 animate-pulse w-full" />
                 }
               </div>
-              <p className="text-[11px] font-mono text-slate-500 lowercase">
-                {progress > 0 ? `✓ subida completada (${progress}%)` : "subiendo directo al bucket — no cierres esta pestaña"}
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-mono text-slate-500 lowercase">
+                  {progress > 0 ? "✓ subida completada" : "subiendo directo al bucket — no cierres esta pestaña"}
+                </p>
+                {progress === 0 && (
+                  <button
+                    onClick={() => { onCancel(); setFileName(null); setFileSize(0); }}
+                    className="text-[11px] font-mono text-red-800 hover:text-red-400 uppercase tracking-widest transition-colors"
+                  >
+                    ✕ cancelar
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
