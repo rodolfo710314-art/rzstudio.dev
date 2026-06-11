@@ -106,10 +106,10 @@ export function ApkManager() {
     });
   }
 
-  async function handleUpload(projectId: string) {
+  async function handleUpload(projectId: string, directFile?: File) {
     const input   = fileInputs.current[projectId];
     const version = (versionRefs.current[projectId]?.value ?? "1.0.0").trim() || "1.0.0";
-    const file    = input?.files?.[0];
+    const file    = directFile ?? input?.files?.[0];
     if (!file) return;
 
     setUploading(projectId); setMsg(null); setProgress(0);
@@ -251,7 +251,7 @@ export function ApkManager() {
               busy={busy}
               progress={uploading === project.id ? progress : null}
               uploadFile={uploading === project.id ? uploadFile : null}
-              onUpload={() => handleUpload(project.id)}
+              onUpload={(f) => handleUpload(project.id, f)}
               onDeleteApk={() => handleDeleteApk(project.id)}
               onRevoke={handleRevoke}
               onExtend={handleExtend}
@@ -274,7 +274,7 @@ interface ApkRowProps {
   busy:         boolean;
   progress:     number | null;
   uploadFile:   { name: string; size: number } | null;
-  onUpload:     () => void;
+  onUpload:     (file?: File) => void;
   onDeleteApk:  () => void;
   onRevoke:     (token: string) => void;
   onExtend:     (token: string, days: number) => void;
@@ -304,7 +304,7 @@ function ApkRow({ project, meta, tokens, busy, progress, uploadFile, onUpload, o
     setFileName(file.name);
     setFileSize(file.size);
     // Arranque automático: elegir archivo = iniciar subida (sin pasos extra)
-    onUpload();
+    onUpload(file);
   }
 
   const active  = tokens.filter((t) => t.status === "active").length;
