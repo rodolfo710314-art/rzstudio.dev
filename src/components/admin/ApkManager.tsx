@@ -68,20 +68,37 @@ export function ApkManager() {
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  // PUT directo a GCS con Fetch API.
-  // XHR con send(File) no dispara onprogress hasta que Chrome termina de leer
-  // el archivo completo en memoria (cuelga en 0% para archivos de >1 GB).
-  // Fetch con body:File envía en streaming y retorna cuando GCS confirma 200.
-  async function fetchPut(url: string, file: File, onProgress: (pct: number) => void, signal: AbortSignal): Promise<void> {
-    const res = await fetch(url, {
-      method:  "PUT",
-      headers: { "Content-Type": "application/vnd.android.package-archive" },
-      body:    file,
-      signal,
+  // PUT directo a GCS con XHR — da onprogress real (%) sin watchdog artificial.
+  // El fallo anterior con XHR era la URL de sesión resumable (CORS por sesión
+  // divergía del preflight de bucket); con V4 signed URL + CORS de bucket,
+  // XHR sí dispara onprogress para archivos de cualquier tamaño.
+  function xhrPut(url: string, file: File, onProgress: (pct: number) => void, signal: AbortSignal): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+
+      signal.addEventListener("abort", () => xhr.abort(), { once: true });
+
+      xhr.open("PUT", url);
+      xhr.setRequestHeader("Content-Type", "application/vnd.android.package-archive");
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable && e.total > 0) {
+          onProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) { onProgress(100); resolve(); }
+        else {
+          const body = xhr.responseText?.slice(0, 200) ?? "";
+          reject(new Error(`gcs ${xhr.status}: ${body || xhr.statusText || "sin detalle"}`));
+        }
+      };
+      xhr.onerror = () => reject(new Error("error de red — verifica la conexión e intenta de nuevo"));
+      xhr.onabort = () => reject(new DOMException("subida cancelada", "AbortError"));
+
+      xhr.send(file);
     });
-    if (res.ok) { onProgress(100); return; }
-    const body = await res.text().catch(() => "");
-    throw new Error(`gcs ${res.status}: ${body.slice(0, 200) || res.statusText || "sin detalle"}`);
   }
 
   function handleCancel() {
@@ -121,7 +138,7 @@ export function ApkManager() {
 
       if (sign.mode === "gcs") {
         // Paso 2: el archivo va DIRECTO al bucket (no pasa por el servidor)
-        await fetchPut(sign.uploadUrl, file, setProgress, ctrl.signal);
+        await xhrPut(sign.uploadUrl, file, setProgress, ctrl.signal);
 
         // Paso 3: confirmar — el servidor verifica el objeto y registra la metadata
         const confRes = await fetch("/api/admin/apk/confirm", {
@@ -283,6 +300,20 @@ function ApkRow({ project, meta, tokens, busy, progress, uploadFile, onUpload, o
   const [fileName,   setFileName]   = useState<string | null>(null);
   const [fileSize,   setFileSize]   = useState<number>(0);
   const [fileError,  setFileError]  = useState<string | null>(null);
+  const [elapsed,    setElapsed]    = useState(0);
+  const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Contador de segundos mientras la subida está activa
+  useEffect(() => {
+    if (busy) {
+      setElapsed(0);
+      elapsedRef.current = setInterval(() => setElapsed((s) => s + 1), 1000);
+    } else {
+      if (elapsedRef.current) { clearInterval(elapsedRef.current); elapsedRef.current = null; }
+      setElapsed(0);
+    }
+    return () => { if (elapsedRef.current) clearInterval(elapsedRef.current); };
+  }, [busy]);
 
   // Si el APK se purga, reabrir el formulario; si se sube, colapsarlo
   useEffect(() => { setShowUpload(!meta); }, [meta?.filename]);
@@ -366,7 +397,9 @@ function ApkRow({ project, meta, tokens, busy, progress, uploadFile, onUpload, o
           >
             {busy ? (
               <>
-                <span className="text-sm font-mono text-[#C97352] animate-pulse">⬆ subiendo {uploadFile?.name ?? fileName ?? "archivo"}...</span>
+                <span className="text-sm font-mono text-[#C97352] animate-pulse">
+                  ⬆ {progress && progress > 0 && progress < 100 ? `${progress}%` : "subiendo"} — {uploadFile?.name ?? fileName ?? "archivo"}
+                </span>
                 <span className="text-[11px] font-mono text-slate-500">{fmt(uploadFile?.size ?? fileSize)} — no cierres esta pestaña</span>
               </>
             ) : fileName ? (
@@ -397,26 +430,40 @@ function ApkRow({ project, meta, tokens, busy, progress, uploadFile, onUpload, o
           )}
 
           {busy && progress !== null && (
-            <div className="space-y-1">
+            <div className="space-y-1.5">
+              {/* Barra de progreso real (XHR onprogress) */}
               <div className="h-1.5 bg-[#111] border border-[#1D140F] overflow-hidden">
                 {progress > 0
                   ? <div className="h-full bg-[#C97352] transition-all duration-300" style={{ width: `${progress}%` }} />
                   : <div className="h-full bg-[#C97352]/40 animate-pulse w-full" />
                 }
               </div>
-              <div className="flex items-center justify-between">
+
+              {/* Estado + contador + botón cancelar */}
+              <div className="flex items-center justify-between gap-4">
                 <p className="text-[11px] font-mono text-slate-500 lowercase">
-                  {progress > 0 ? "✓ subida completada" : "subiendo directo al bucket — no cierres esta pestaña"}
+                  {progress >= 100
+                    ? "✓ subida completada — confirmando..."
+                    : progress > 0
+                      ? `${progress}% · ${elapsed}s transcurridos`
+                      : `iniciando subida... ${elapsed}s`}
                 </p>
-                {progress === 0 && (
+                {progress < 100 && (
                   <button
                     onClick={() => { onCancel(); setFileName(null); setFileSize(0); }}
-                    className="text-[11px] font-mono text-red-800 hover:text-red-400 uppercase tracking-widest transition-colors"
+                    className="text-[11px] font-mono text-red-800 hover:text-red-400 uppercase tracking-widest transition-colors shrink-0"
                   >
                     ✕ cancelar
                   </button>
                 )}
               </div>
+
+              {/* Aviso si lleva más de 30s sin avanzar del 0% */}
+              {progress === 0 && elapsed >= 30 && (
+                <p className="text-[11px] font-mono text-amber-500 lowercase">
+                  ⚠ {elapsed}s sin actividad — si no inicia, cancela y reintenta (verifica la conexión)
+                </p>
+              )}
             </div>
           )}
 
