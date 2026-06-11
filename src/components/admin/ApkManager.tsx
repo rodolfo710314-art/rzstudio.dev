@@ -354,8 +354,8 @@ function ApkRow({ project, meta, tokens, busy, progress, uploadFile, onUpload, o
               </>
             ) : fileName ? (
               <>
-                <span className="text-sm font-mono text-emerald-400">✓ {fileName}</span>
-                <span className="text-[11px] font-mono text-slate-500">{fmt(fileSize)}</span>
+                <span className="text-sm font-mono text-slate-300">📎 {fileName}</span>
+                <span className="text-[11px] font-mono text-slate-500">{fmt(fileSize)} — listo para subir</span>
               </>
             ) : (
               <>
