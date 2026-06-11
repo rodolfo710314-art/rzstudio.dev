@@ -96,11 +96,16 @@ export function ApkManager() {
       xhr.onload = () => {
         clearTimeout(watchdog);
         if (xhr.status >= 200 && xhr.status < 300) resolve();
-        else reject(new Error(`gcs respondió ${xhr.status} ${xhr.statusText || ""}`.trim()));
+        else {
+          const body = xhr.responseText?.slice(0, 300) ?? "";
+          reject(new Error(`gcs ${xhr.status}: ${body || xhr.statusText || "sin detalle"}`));
+        }
       };
       xhr.onerror = () => {
         clearTimeout(watchdog);
-        reject(new Error("error de red durante la subida (revisa la consola del navegador: F12)"));
+        reject(new Error(
+          "error de red — posible bloqueo CORS: abre F12 → Console y busca el error rojo de storage.googleapis.com",
+        ));
       };
       xhr.send(file);
     });

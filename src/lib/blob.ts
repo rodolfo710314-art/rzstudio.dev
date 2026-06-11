@@ -69,21 +69,28 @@ export async function deleteApkBlob(projectId: string, filename: string): Promis
 // Requiere que la service account pueda firmar (roles/iam.serviceAccountTokenCreator
 // sobre sí misma) para las URLs de descarga.
 
-/** Crea una sesión de subida resumable. El `origin` habilita CORS para esa sesión. */
+/**
+ * URL firmada V4 para PUT directo desde el navegador.
+ * Reemplaza createResumableUpload: el CORS lo maneja únicamente la política
+ * de bucket (no hay capa per-session que pueda divergir del preflight OPTIONS).
+ * Requiere iam.serviceAccounts.signBlob → roles/iam.serviceAccountTokenCreator.
+ */
 export async function createUploadSession(
   projectId:   string,
   filename:    string,
   contentType: string,
-  origin:      string,
+  _origin:     string, // reservado — ya no se usa; CORS via bucket policy
 ): Promise<string> {
   if (!gcsEnabled()) throw new Error("subida directa requiere RZ_GCS_BUCKET");
-  const [uri] = await bucket()
+  const [url] = await bucket()
     .file(objectName(projectId, filename))
-    .createResumableUpload({
-      origin,
-      metadata: { contentType },
+    .getSignedUrl({
+      version:     "v4",
+      action:      "write",
+      expires:     Date.now() + 6 * 60 * 60 * 1000, // 6 horas
+      contentType,
     });
-  return uri;
+  return url;
 }
 
 /** Verifica que el objeto exista tras la subida directa y devuelve su tamaño real. */
