@@ -67,48 +67,20 @@ export function ApkManager() {
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  // Subida con progreso: XHR PUT directo a la sesión resumable de GCS.
-  // Watchdog: si no hay NINGÚN progreso en 25s, abortamos con diagnóstico —
-  // un cuelgue en 0% casi siempre es preflight CORS bloqueado (origin distinto).
-  function xhrPutWithProgress(url: string, file: File, onProgress: (pct: number) => void): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      let gotProgress = false;
-
-      const watchdog = setTimeout(() => {
-        if (!gotProgress) {
-          xhr.abort();
-          reject(new Error(
-            "la subida no arrancó en 25s — posible bloqueo CORS del bucket. " +
-            "abre la consola del navegador (F12 → Console) y compárteme el error rojo",
-          ));
-        }
-      }, 25_000);
-
-      xhr.open("PUT", url);
-      xhr.setRequestHeader("Content-Type", "application/vnd.android.package-archive");
-      xhr.upload.onprogress = (e) => {
-        if (e.loaded > 0) gotProgress = true;
-        if (e.lengthComputable && e.total > 0) {
-          onProgress(Math.round((e.loaded / e.total) * 100));
-        }
-      };
-      xhr.onload = () => {
-        clearTimeout(watchdog);
-        if (xhr.status >= 200 && xhr.status < 300) resolve();
-        else {
-          const body = xhr.responseText?.slice(0, 300) ?? "";
-          reject(new Error(`gcs ${xhr.status}: ${body || xhr.statusText || "sin detalle"}`));
-        }
-      };
-      xhr.onerror = () => {
-        clearTimeout(watchdog);
-        reject(new Error(
-          "error de red — posible bloqueo CORS: abre F12 → Console y busca el error rojo de storage.googleapis.com",
-        ));
-      };
-      xhr.send(file);
+  // PUT directo a GCS con Fetch API.
+  // XHR con send(File) no dispara onprogress hasta que Chrome termina de leer
+  // el archivo completo en memoria (cuelga en 0% para archivos de >1 GB).
+  // Fetch con body:File envía en streaming y retorna cuando GCS confirma 200.
+  async function fetchPut(url: string, file: File, onProgress: (pct: number) => void): Promise<void> {
+    const res = await fetch(url, {
+      method:  "PUT",
+      headers: { "Content-Type": "application/vnd.android.package-archive" },
+      body:    file,
+      signal:  AbortSignal.timeout(90 * 60 * 1000), // 90 min máximo
     });
+    if (res.ok) { onProgress(100); return; }
+    const body = await res.text().catch(() => "");
+    throw new Error(`gcs ${res.status}: ${body.slice(0, 200) || res.statusText || "sin detalle"}`);
   }
 
   async function handleUpload(projectId: string, directFile?: File) {
@@ -139,7 +111,7 @@ export function ApkManager() {
 
       if (sign.mode === "gcs") {
         // Paso 2: el archivo va DIRECTO al bucket (no pasa por el servidor)
-        await xhrPutWithProgress(sign.uploadUrl, file, setProgress);
+        await fetchPut(sign.uploadUrl, file, setProgress);
 
         // Paso 3: confirmar — el servidor verifica el objeto y registra la metadata
         const confRes = await fetch("/api/admin/apk/confirm", {
@@ -378,7 +350,7 @@ function ApkRow({ project, meta, tokens, busy, progress, uploadFile, onUpload, o
             {busy ? (
               <>
                 <span className="text-sm font-mono text-[#C97352] animate-pulse">⬆ subiendo {uploadFile?.name ?? fileName ?? "archivo"}...</span>
-                <span className="text-[11px] font-mono text-slate-500">{progress ?? 0}% de {fmt(uploadFile?.size ?? fileSize)} — no cierres esta pestaña</span>
+                <span className="text-[11px] font-mono text-slate-500">{fmt(uploadFile?.size ?? fileSize)} — no cierres esta pestaña</span>
               </>
             ) : fileName ? (
               <>
@@ -409,11 +381,14 @@ function ApkRow({ project, meta, tokens, busy, progress, uploadFile, onUpload, o
 
           {busy && progress !== null && (
             <div className="space-y-1">
-              <div className="h-1.5 bg-[#111] border border-[#1D140F]">
-                <div className="h-full bg-[#C97352] transition-all duration-300" style={{ width: `${progress}%` }} />
+              <div className="h-1.5 bg-[#111] border border-[#1D140F] overflow-hidden">
+                {progress > 0
+                  ? <div className="h-full bg-[#C97352] transition-all duration-300" style={{ width: `${progress}%` }} />
+                  : <div className="h-full bg-[#C97352]/40 animate-pulse w-full" />
+                }
               </div>
               <p className="text-[11px] font-mono text-slate-500 lowercase">
-                subiendo directo al bucket — {progress}% · no cierres esta pestaña
+                {progress > 0 ? `✓ subida completada (${progress}%)` : "subiendo directo al bucket — no cierres esta pestaña"}
               </p>
             </div>
           )}
