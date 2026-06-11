@@ -62,6 +62,13 @@ e incluir al menos un pendiente relacionado con el área que se toca.
   "quedan N lugares en esta fase".
   Acotamiento resultante (fase de 20 testers, APK 1.5 GB): máx. ~$10.80 USD de egreso.
 
+## ✅ Higiene de infraestructura
+
+- [x] **Vercel desconectado** del repo (11/06/2026) — había un pipeline fantasma
+  paralelo a Cloud Build; esa versión Vercel estaba rota (sin service account de
+  GCP → sin Firestore/GCS/Vertex). El dominio rzstudio.dev siempre lo sirvió
+  Cloud Run (`server: Google Frontend`). Ahora solo Cloud Run despliega.
+
 ## 🟡 Pendientes — baja prioridad
 
 - [ ] **#11 Rotación de logs JSONL** — `usage-log.jsonl` e `iron-judge-log.jsonl` crecen sin
