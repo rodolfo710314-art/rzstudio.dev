@@ -338,14 +338,14 @@ function ApkRow({ project, meta, tokens, busy, progress, uploadFile, onUpload, o
                 className="text-[11px] uppercase tracking-widest font-mono text-red-900 hover:text-red-500 transition-colors disabled:opacity-40">
                 purgar APK
               </button>
+              <button onClick={() => setShowUpload((v) => !v)}
+                className="text-[11px] uppercase tracking-widest font-mono text-slate-500 hover:text-[#C97352] transition-colors border border-[#333] px-2 py-1">
+                reemplazar APK
+              </button>
             </>
           ) : (
             <span className="text-[11px] font-mono text-slate-500">sin APK</span>
           )}
-          <button onClick={() => setShowUpload((v) => !v)}
-            className="text-[11px] uppercase tracking-widest font-mono text-slate-500 hover:text-[#C97352] transition-colors border border-[#333] px-2 py-1">
-            {meta ? "reemplazar APK" : "subir APK"}
-          </button>
         </div>
       </div>
 

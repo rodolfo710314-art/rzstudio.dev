@@ -1,0 +1,15 @@
+[
+  {
+    "origin": ["https://rzstudio.dev"],
+    "method": ["PUT", "POST", "GET", "HEAD", "OPTIONS"],
+    "responseHeader": [
+      "Content-Type",
+      "Content-Range",
+      "Content-Length",
+      "x-goog-resumable",
+      "Range",
+      "ETag"
+    ],
+    "maxAgeSeconds": 3600
+  }
+]
