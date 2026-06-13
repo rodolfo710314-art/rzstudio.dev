@@ -60,11 +60,21 @@ export function AndroidModal({ project, onClose }: AndroidModalProps) {
     setResult(null);
     setTimeout(() => closeRef.current?.focus(), 50);
 
-    // Check if APK is available for this project
-    fetch(`/api/apk/${project.id}`)
+    let cancelled = false;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12_000);
+
+    fetch(`/api/apk/${project.id}`, { signal: controller.signal })
       .then((r) => r.json())
-      .then((data) => setStep(data.available ? "form" : "unavailable"))
-      .catch(() => setStep("unavailable"));
+      .then((data) => { if (!cancelled) setStep(data.available ? "form" : "unavailable"); })
+      .catch(() => { if (!cancelled) setStep("unavailable"); })
+      .finally(() => clearTimeout(timeout));
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+      clearTimeout(timeout);
+    };
   }, [project?.id]);
 
   function handleClose() {
