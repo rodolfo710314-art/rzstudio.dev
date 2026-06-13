@@ -1,0 +1,28 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - -t
+      - us-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/rzstudio-dev:$COMMIT_SHA
+      - .
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - push
+      - us-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/rzstudio-dev:$COMMIT_SHA
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - rzstudio-dev
+      - --image=us-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/rzstudio-dev:$COMMIT_SHA
+      - --region=us-west1
+      - --quiet
+
+images:
+  - us-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/rzstudio-dev:$COMMIT_SHA
+
+options:
+  logging: CLOUD_LOGGING_ONLY
